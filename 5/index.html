@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sen Vàng | Authentic Vietnamese Cuisine</title>
+    
+    <!-- Fonts: Plus Jakarta Sans for modern clean feel, Playfair Display for headers -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tailwind Config for Custom Colors -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            850: '#064E3B',
+                            950: '#022C22',
+                        },
+                        terracotta: {
+                            500: '#E07A5F',
+                            600: '#D16041',
+                            700: '#B84526',
+                        },
+                        gold: {
+                            400: '#FACC15',
+                            500: '#EAB308',
+                            600: '#CA8A04',
+                        },
+                        cream: '#FDFCF8',
+                        bamboo: '#F5F5F0'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    backgroundImage: {
+                        'texture-pattern': "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23064E3B' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F5F5F0;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #064E3B;
+            border-radius: 4px;
+        }
+        
+        /* Smooth Fade In Animation Classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Hero Image blob mask */
+        .blob-mask {
+            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+            transition: border-radius 5s ease-in-out infinite alternate;
+        }
+        
+        /* Subtle leaf shadow */
+        .leaf-shadow {
+            filter: drop-shadow(0 20px 30px rgba(6, 78, 59, 0.15));
+        }
+    </style>
+</head>
+<body class="bg-bamboo text-emerald-950 font-sans antialiased overflow-x-hidden relative">
+
+    <!-- Background Texture Overlay -->
+    <div class="fixed inset-0 w-full h-full bg-texture-pattern pointer-events-none z-0"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed w-full z-50 transition-all duration-300 py-6 px-6 lg:px-12 top-0">
+        <div class="max-w-7xl mx-auto backdrop-blur-md bg-white/80 border border-white/40 shadow-lg rounded-full px-6 py-4 flex justify-between items-center">
+            <!-- Logo -->
+            <a href="#" class="flex items-center gap-2 group">
+                <div class="w-10 h-10 bg-emerald-950 rounded-full flex items-center justify-center text-gold-400 transition-transform group-hover:rotate-12">
+                    <i data-lucide="flower-2" class="w-6 h-6"></i>
+                </div>
+                <span class="font-serif text-2xl font-bold tracking-tight text-emerald-950">Sen Vàng</span>
+            </a>
+
+            <!-- Desktop Links -->
+            <div class="hidden md:flex items-center gap-8 font-medium text-emerald-900/80">
+                <a href="#about" class="hover:text-terracotta-600 transition-colors">Our Story</a>
+                <a href="#menu" class="hover:text-terracotta-600 transition-colors">Menu</a>
+                <a href="#ambience" class="hover:text-terracotta-600 transition-colors">Ambience</a>
+            </div>
+
+            <!-- CTA -->
+            <div class="flex items-center gap-4">
+                <button onclick="document.getElementById('reservation-modal').showModal()" class="hidden md:flex items-center gap-2 bg-terracotta-600 hover:bg-terracotta-700 text-white px-6 py-2.5 rounded-full font-semibold transition-all hover:shadow-lg hover:scale-105 active:scale-95">
+                    <span>Reserve</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden text-emerald-950 p-2">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 px-6 lg:px-12 z-10 overflow-hidden">
+        <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+            <!-- Text Content -->
+            <div class="reveal">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100 text-emerald-800 text-sm font-bold tracking-wider uppercase mb-6">
+                    <span class="w-2 h-2 rounded-full bg-terracotta-600"></span>
+                    Authentic Vietnamese
+                </div>
+                <h1 class="font-serif text-5xl lg:text-7xl leading-[1.1] font-bold text-emerald-950 mb-6">
+                    Taste the Soul of <span class="text-terracotta-600 italic">Tropical</span> Vietnam.
+                </h1>
+                <p class="text-lg text-emerald-900/70 mb-8 max-w-lg leading-relaxed">
+                    A culinary journey where tropical modernism meets traditional flavors. Fresh herbs, slow-simmered broths, and the warmth of a Vietnamese home.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="#menu" class="px-8 py-4 bg-emerald-950 text-white rounded-2xl font-semibold hover:bg-emerald-900 transition-all hover:shadow-xl flex items-center justify-center gap-2">
+                        View Menu
+                    </a>
+                    <button class="px-8 py-4 bg-white border-2 border-emerald-100 text-emerald-950 rounded-2xl font-semibold hover:border-emerald-300 hover:bg-emerald-50 transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="play-circle" class="w-5 h-5 text-terracotta-600"></i>
+                        Watch Our Process
+                    </button>
+                </div>
+                
+                <!-- Trust Indicators -->
+                <div class="mt-12 flex items-center gap-6 text-sm font-medium text-emerald-900/60">
+                    <div class="flex -space-x-3">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100" class="w-10 h-10 rounded-full border-2 border-white" alt="Reviewer">
+                        <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=100&h=100" class="w-10 h-10 rounded-full border-2 border-white" alt="Reviewer">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&h=100" class="w-10 h-10 rounded-full border-2 border-white" alt="Reviewer">
+                    </div>
+                    <div>
+                        <div class="flex text-gold-500 mb-1">
+                            <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                            <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                            <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                            <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                            <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                        </div>
+                        <span>Loved by 2,000+ guests</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hero Image Composition -->
+            <div class="relative reveal delay-200">
+                <!-- Decorative Gold Circle -->
+                <div class="absolute top-0 right-0 w-64 h-64 bg-gold-400/20 rounded-full blur-3xl -z-10"></div>
+                
+                <!-- Main Image Masked -->
+                <div class="relative z-10 leaf-shadow transition-transform hover:scale-[1.02] duration-500">
+                    <img src="https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?q=80&w=1000&auto=format&fit=crop" 
+                         alt="Flat lay of Pho and fresh herbs" 
+                         class="w-full h-auto object-cover rounded-[3rem] border-8 border-white shadow-2xl">
+                    
+                    <!-- Floating Badge -->
+                    <div class="absolute -bottom-6 -left-6 bg-white p-4 rounded-2xl shadow-xl flex items-center gap-4 animate-bounce" style="animation-duration: 3s;">
+                        <div class="w-12 h-12 bg-terracotta-100 text-terracotta-600 rounded-full flex items-center justify-center">
+                            <i data-lucide="award" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 font-semibold uppercase">Award Winning</p>
+                            <p class="font-serif font-bold text-emerald-950">Best Pho 2025</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Background Elements -->
+        <div class="absolute top-1/4 left-0 -translate-x-1/2 w-96 h-96 bg-emerald-300/10 rounded-full blur-3xl -z-10"></div>
+    </header>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 px-6 lg:px-12 bg-emerald-950 text-cream relative overflow-hidden">
+        <!-- Bamboo leaf decoration (CSS/SVG) -->
+        <div class="absolute top-0 right-0 w-64 h-64 opacity-10">
+            <svg viewBox="0 0 100 100" fill="currentColor">
+                <path d="M50 0 C60 40 90 60 100 70 C80 80 40 90 0 100 C20 60 40 20 50 0 Z" />
+            </svg>
+        </div>
+
+        <div class="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 items-center">
+            <div class="lg:col-span-5 relative reveal">
+                <img src="https://images.unsplash.com/photo-1555126634-323283e090fa?auto=format&fit=crop&w=800&q=80" alt="Chef preparing food" class="rounded-t-full rounded-b-2xl w-full h-[500px] object-cover border-4 border-emerald-900/50">
+            </div>
+            <div class="lg:col-span-7 reveal delay-100">
+                <h2 class="font-serif text-4xl lg:text-5xl mb-6">Honoring the <span class="text-gold-500">Tradition</span></h2>
+                <p class="text-emerald-100/80 text-lg leading-relaxed mb-6 font-light">
+                    At Sen Vàng, we believe that Vietnamese cuisine is an art form balanced by the five elements. Our broth simmers for 24 hours, extracting the deep marrow essence, while our herbs are sourced daily from local organic farms.
+                </p>
+                <div class="grid grid-cols-2 gap-8 mt-8 border-t border-emerald-800 pt-8">
+                    <div>
+                        <h3 class="text-3xl font-serif text-gold-400 mb-2">24h</h3>
+                        <p class="text-sm text-emerald-200">Bone Broth Simmer Time</p>
+                    </div>
+                    <div>
+                        <h3 class="text-3xl font-serif text-gold-400 mb-2">100%</h3>
+                        <p class="text-sm text-emerald-200">Organic Local Herbs</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Menu Highlights -->
+    <section id="menu" class="py-24 px-6 lg:px-12 relative z-10">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center max-w-2xl mx-auto mb-16 reveal">
+                <span class="text-terracotta-600 font-bold tracking-widest uppercase text-sm">Our Specialties</span>
+                <h2 class="font-serif text-4xl lg:text-5xl text-emerald-950 mt-3 mb-4">Curated Flavors</h2>
+                <p class="text-gray-600">A selection of our most cherished dishes, bringing the streets of Hanoi to your table.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Dish Card 1 -->
+                <div class="group bg-white rounded-3xl p-4 shadow-sm hover:shadow-xl transition-all duration-300 reveal delay-100 cursor-pointer border border-transparent hover:border-emerald-100">
+                    <div class="relative overflow-hidden rounded-2xl h-64 mb-6">
+                        <img src="https://images.unsplash.com/photo-1634047127156-3b60408587d8?auto=format&fit=crop&w=800&q=80" alt="Pho Bo" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-emerald-950 font-bold text-sm shadow-sm">
+                            $18
+                        </div>
+                    </div>
+                    <div class="px-2 pb-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-serif text-2xl text-emerald-950 group-hover:text-terracotta-600 transition-colors">Pho Dac Biet</h3>
+                        </div>
+                        <p class="text-gray-500 text-sm mb-4 line-clamp-2">Special combination beef noodle soup with rare steak, brisket, tendon, and tripe. Served with fresh basil.</p>
+                        <button class="w-full py-3 rounded-xl bg-emerald-50 text-emerald-900 font-semibold group-hover:bg-emerald-950 group-hover:text-white transition-colors flex items-center justify-center gap-2">
+                            Add to Order
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dish Card 2 -->
+                <div class="group bg-white rounded-3xl p-4 shadow-sm hover:shadow-xl transition-all duration-300 reveal delay-200 cursor-pointer border border-transparent hover:border-emerald-100">
+                    <div class="relative overflow-hidden rounded-2xl h-64 mb-6">
+                        <img src="https://images.unsplash.com/photo-1627207644206-a21503d2d114?auto=format&fit=crop&w=800&q=80" alt="Banh Mi" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-emerald-950 font-bold text-sm shadow-sm">
+                            $12
+                        </div>
+                    </div>
+                    <div class="px-2 pb-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-serif text-2xl text-emerald-950 group-hover:text-terracotta-600 transition-colors">Banh Mi Chao</h3>
+                        </div>
+                        <p class="text-gray-500 text-sm mb-4 line-clamp-2">Crispy baguette served with sizzling steak, pâté, eggs, and meatballs in a savory reduction.</p>
+                        <button class="w-full py-3 rounded-xl bg-emerald-50 text-emerald-900 font-semibold group-hover:bg-emerald-950 group-hover:text-white transition-colors flex items-center justify-center gap-2">
+                            Add to Order
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dish Card 3 -->
+                <div class="group bg-white rounded-3xl p-4 shadow-sm hover:shadow-xl transition-all duration-300 reveal delay-300 cursor-pointer border border-transparent hover:border-emerald-100">
+                    <div class="relative overflow-hidden rounded-2xl h-64 mb-6">
+                        <img src="https://images.unsplash.com/photo-1548507226-5b12a87265a0?auto=format&fit=crop&w=800&q=80" alt="Spring Rolls" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-emerald-950 font-bold text-sm shadow-sm">
+                            $10
+                        </div>
+                    </div>
+                    <div class="px-2 pb-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-serif text-2xl text-emerald-950 group-hover:text-terracotta-600 transition-colors">Goi Cuon</h3>
+                        </div>
+                        <p class="text-gray-500 text-sm mb-4 line-clamp-2">Fresh summer rolls with shrimp, pork, vermicelli, and mint. Served with peanut hoisin sauce.</p>
+                        <button class="w-full py-3 rounded-xl bg-emerald-50 text-emerald-900 font-semibold group-hover:bg-emerald-950 group-hover:text-white transition-colors flex items-center justify-center gap-2">
+                            Add to Order
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-12 text-center">
+                <a href="#" class="inline-flex items-center gap-2 text-emerald-900 font-bold hover:text-terracotta-600 transition-colors border-b-2 border-emerald-900 hover:border-terracotta-600 pb-1">
+                    View Full Menu
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ambience / Feature Split -->
+    <section id="ambience" class="py-20 px-6 lg:px-12 bg-emerald-50">
+        <div class="max-w-7xl mx-auto rounded-[3rem] overflow-hidden bg-emerald-950 text-white shadow-2xl relative">
+            <div class="grid lg:grid-cols-2">
+                <div class="p-12 lg:p-20 flex flex-col justify-center relative z-10">
+                    <i data-lucide="quote" class="w-12 h-12 text-gold-500 mb-6 opacity-50"></i>
+                    <h2 class="font-serif text-3xl lg:text-4xl leading-tight mb-8">
+                        "The atmosphere transports you straight to the veranda of a colonial villa in Saigon. It's lush, golden, and utterly delicious."
+                    </h2>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-1 bg-terracotta-600"></div>
+                        <span class="font-sans uppercase tracking-widest text-sm text-gold-400">Michelin Guide 2024</span>
+                    </div>
+                </div>
+                <div class="relative h-96 lg:h-auto">
+                    <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1000&q=80" alt="Restaurant Interior" class="absolute inset-0 w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-950 to-transparent lg:bg-gradient-to-l opacity-60"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-emerald-950 text-emerald-100 pt-20 pb-10 px-6 lg:px-12">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-16 border-b border-emerald-900 pb-16">
+            <div class="col-span-1 md:col-span-2">
+                <div class="flex items-center gap-2 mb-6">
+                    <i data-lucide="flower-2" class="w-8 h-8 text-gold-400"></i>
+                    <span class="font-serif text-3xl font-bold text-white">Sen Vàng</span>
+                </div>
+                <p class="max-w-xs text-emerald-200/60 leading-relaxed mb-8">
+                    Authentic Vietnamese flavors served in a modern tropical setting. Experience the art of balance.
+                </p>
+                <div class="flex gap-4">
+                    <a href="#" class="w-10 h-10 rounded-full bg-emerald-900 flex items-center justify-center hover:bg-terracotta-600 transition-colors text-white">
+                        <i data-lucide="instagram" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-emerald-900 flex items-center justify-center hover:bg-terracotta-600 transition-colors text-white">
+                        <i data-lucide="facebook" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-emerald-900 flex items-center justify-center hover:bg-terracotta-600 transition-colors text-white">
+                        <i data-lucide="twitter" class="w-5 h-5"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div>
+                <h4 class="font-serif text-xl text-white mb-6">Visit Us</h4>
+                <address class="not-italic text-emerald-200/60 space-y-2">
+                    <p>123 Bamboo Lane</p>
+                    <p>District 1, Metro City</p>
+                    <p class="pt-2 text-white">+1 (555) 019-2834</p>
+                    <p>hello@senvang.com</p>
+                </address>
+            </div>
+            
+            <div>
+                <h4 class="font-serif text-xl text-white mb-6">Hours</h4>
+                <ul class="text-emerald-200/60 space-y-2">
+                    <li class="flex justify-between">
+                        <span>Mon - Fri</span>
+                        <span class="text-white">11am - 10pm</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span>Sat - Sun</span>
+                        <span class="text-white">10am - 11pm</span>
+                    </li>
+                    <li class="mt-4 text-terracotta-400 font-medium">Happy Hour: 4pm - 6pm</li>
+                </ul>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-sm text-emerald-800">
+            <p>&copy; 2025 Sen Vàng Restaurant. All rights reserved.</p>
+            <div class="flex gap-6 mt-4 md:mt-0">
+                <a href="#" class="hover:text-emerald-400">Privacy Policy</a>
+                <a href="#" class="hover:text-emerald-400">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Reservation Modal -->
+    <dialog id="reservation-modal" class="p-0 rounded-3xl backdrop:bg-emerald-950/80 shadow-2xl w-[90%] max-w-lg">
+        <div class="relative bg-cream p-8">
+            <button onclick="document.getElementById('reservation-modal').close()" class="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <i data-lucide="x" class="w-6 h-6 text-gray-500"></i>
+            </button>
+            
+            <div class="text-center mb-8">
+                <i data-lucide="calendar-days" class="w-12 h-12 text-terracotta-600 mx-auto mb-4"></i>
+                <h3 class="font-serif text-3xl text-emerald-950">Book a Table</h3>
+                <p class="text-gray-500 mt-2">Reserve your spot for an unforgettable evening.</p>
+            </div>
+
+            <form class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                        <input type="date" class="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                        <select class="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <option>5:00 PM</option>
+                            <option>6:00 PM</option>
+                            <option>7:00 PM</option>
+                            <option>8:00 PM</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Guests</label>
+                    <select class="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option>2 People</option>
+                        <option>3 People</option>
+                        <option>4 People</option>
+                        <option>5+ People</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input type="text" placeholder="John Doe" class="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                    <input type="tel" placeholder="(555) 000-0000" class="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <button type="button" onclick="document.getElementById('reservation-modal').close()" class="w-full py-4 bg-emerald-950 text-white font-bold rounded-xl hover:bg-emerald-900 transition-colors mt-4 shadow-lg">
+                    Confirm Reservation
+                </button>
+            </form>
+        </div>
+    </dialog>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Intersection Observer for Scroll Animations
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Navbar Scroll Effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                nav.classList.add('py-2');
+                nav.classList.remove('py-6');
+            } else {
+                nav.classList.add('py-6');
+                nav.classList.remove('py-2');
+            }
+        });
+    </script>
+</body>
+</html>
