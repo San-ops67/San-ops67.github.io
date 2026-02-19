@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Portfolio | Jméno Příjmení</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- 1. ZÁKLADNÍ NASTAVENÍ --- */
+        :root {
+            --bg: #ffffff;
+            --text: #050505;
+            --text-light: #555555;
+            --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        html {
+            width: 100%;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            position: relative;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; padding: 0; margin: 0; }
+        button { border: none; background: none; cursor: pointer; color: inherit; font-family: inherit; }
+
+        /* --- 2. VRSTVY --- */
+        #webgl-glass { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: 0; pointer-events: none; display: block; 
+        }
+        
+        #pixel-canvas { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: 10; pointer-events: auto; cursor: crosshair; display: block;
+        }
+        @media (max-width: 768px) { #pixel-canvas { display: none !important; pointer-events: none; } }
+
+        /* --- 3. LOADER --- */
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 9999;
+            display: flex; justify-content: flex-end; align-items: flex-end; padding: 40px;
+            transition: transform 0.8s cubic-bezier(0.85, 0, 0.15, 1);
+        }
+        .loader-content { 
+            text-align: right; 
+            font-family: 'Inter', sans-serif; 
+            font-variant-numeric: tabular-nums; 
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        .loader-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-light);
+            margin-bottom: 0px;
+            font-weight: 600;
+        }
+        #loader-percent { font-size: 3rem; font-weight: 300; display: block; line-height: 1; margin-top: 5px; }
+        #loader-line { width: 100%; height: 2px; background: #000; margin-top: 10px; transform-origin: right; transform: scaleX(0); transition: transform 0.2s; }
+
+        /* --- 4. UI ELEMENTY --- */
+        nav {
+            position: fixed; top: 0; left: 0; width: 100%; padding: 40px 50px; 
+            display: flex; justify-content: space-between; align-items: center;
+            background: transparent; mix-blend-mode: exclusion; color: white;
+            transition: all 0.4s var(--ease-out-expo); pointer-events: none; z-index: 500;
+        }
+        nav .logo, nav .menu-btn { pointer-events: auto; }
+
+        nav.scrolled {
+            padding: 20px 50px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);
+            mix-blend-mode: normal; color: #000; border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.2rem; letter-spacing: -0.5px; }
+        .menu-btn { font-family: 'Syne', sans-serif; font-weight: 700; text-transform: uppercase; font-size: 0.9rem; }
+
+        #menu-overlay {
+            position: fixed; inset: 0; background: #0a0a0a; color: #fff;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s var(--ease-out-expo);
+            z-index: 999;
+        }
+        #menu-overlay.active { opacity: 1; pointer-events: auto; }
+        
+        .menu-link {
+            font-family: 'Syne', sans-serif; font-size: 4rem; font-weight: 800;
+            color: transparent; -webkit-text-stroke: 1px #666; display: block; margin: 5px 0;
+            transform: translateY(100%); transition: transform 0.5s ease, color 0.3s;
+        }
+        #menu-overlay.active .menu-link { transform: translateY(0); }
+        .menu-link:hover { color: #fff; -webkit-text-stroke: 1px #fff; transform: scale(1.05) !important; }
+        .close-btn { position: absolute; top: 40px; right: 50px; font-family: 'Syne', sans-serif; font-weight: 700; text-transform: uppercase; pointer-events: auto; }
+
+        /* MAIN CONTENT */
+        main { width: 100%; position: relative; z-index: 100; }
+        
+        .hero { height: 100vh; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
+        h1 { font-family: 'Syne', sans-serif; font-size: 11vw; line-height: 0.85; text-align: center; color: var(--text); letter-spacing: -0.04em; margin: 0; overflow: hidden; width: 100%; }
+        .role { font-family: 'Inter', sans-serif; margin-top: 30px; text-transform: uppercase; letter-spacing: 2px; font-size: 0.9rem; color: var(--text-light); opacity: 0; animation: fadeUp 1s ease 1s forwards; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .char { display: inline-block; opacity: 0; transform: translateY(100%) rotate(10deg); transition: transform 1s var(--ease-out-expo), opacity 1s var(--ease-out-expo); }
+        .hero-title.animate .char { opacity: 1; transform: translateY(0) rotate(0deg); }
+        .reveal-text { opacity: 0; transform: translateY(30px); transition: all 1s var(--ease-out-expo); }
+        .reveal-text.active { opacity: 1; transform: translateY(0); }
+
+        .marquee-wrapper { width: 100%; overflow: hidden; border-top: 1px solid #111; border-bottom: 1px solid #111; background: #fff; padding: 20px 0; margin: 50px 0; display: flex; align-items: center; position: relative; pointer-events: auto; }
+        .marquee-content { display: flex; white-space: nowrap; }
+        .marquee-item { font-family: 'Syne', sans-serif; font-size: 5rem; font-weight: 800; text-transform: uppercase; padding: 0 40px; color: transparent; -webkit-text-stroke: 1px #000; position: relative; }
+        .marquee-item::after { content: "✦"; font-size: 2rem; position: absolute; right: -10px; top: 50%; transform: translateY(-50%); color: #000; -webkit-text-stroke: 0; }
+
+        section { padding: 120px 50px; border-top: 1px solid #eee; background: rgba(255,255,255,0.85); backdrop-filter: blur(5px); width: 100%; }
+        .section-headline { font-family: 'Syne', sans-serif; font-size: 3.5rem; font-weight: 700; margin: 0 0 50px 0; max-width: 900px; line-height: 1.1; }
+
+        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; width: 100%; }
+        .service-card { padding: 30px; border: 1px solid #eee; background: #fff; transition: transform 0.3s; }
+        .service-card:hover { transform: translateY(-10px); border-color: #000; }
+        .service-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.5rem; display: block; margin-bottom: 10px; }
+
+        .project-item { display: flex; justify-content: space-between; align-items: baseline; padding: 50px 0; border-bottom: 1px solid #eee; cursor: pointer; width: 100%; }
+        .project-item:hover { background: #f9f9f9; padding-left: 20px; padding-right: 20px; }
+        .project-name { font-family: 'Syne', sans-serif; font-size: 3rem; font-weight: 700; margin: 0; }
+
+        footer { 
+            padding: 100px 50px 50px 50px; 
+            border-top: 1px solid #000; 
+            background: #fff; 
+            width: 100%; 
+            display: flex;
+            flex-direction: column;
+            gap: 60px;
+        }
+        
+        .email-link { 
+            font-family: 'Syne', sans-serif; 
+            font-size: 2rem; 
+            font-weight: 800; 
+            display: inline-block; 
+            margin: 20px 0 40px 0;
+            color: var(--text);
+            position: relative;
+        }
+        .email-link::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0%; height: 3px; background: var(--text); transition: width 0.3s var(--ease-out-expo); }
+        .email-link:hover::after { width: 100%; }
+
+        .social-links { display: flex; gap: 40px; flex-wrap: wrap; }
+        .social-link { font-family: 'Inter', sans-serif; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text); position: relative; padding-bottom: 5px; cursor: pointer; }
+        .social-link::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0%; height: 1px; background: #000; transition: width 0.3s; }
+        .social-link:hover::after { width: 100%; }
+
+        .footer-meta { display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--text-light); padding-top: 20px; border-top: 1px solid #eee; }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 15vw; } .menu-link { font-size: 2.5rem; } nav, section, footer { padding: 40px 20px; }
+            .section-headline { font-size: 2.2rem; } .marquee-item { font-size: 3rem; padding: 0 20px; }
+            nav.scrolled { padding: 20px; } .close-btn { top: 20px; right: 20px; }
+            .service-card:hover { transform: none; } .project-item { flex-direction: column; gap: 10px; } .project-name { font-size: 1.8rem; }
+            .email-link { font-size: 1.5rem; } .social-links { gap: 20px; } .footer-meta { flex-direction: column; gap: 10px; }
+            #loader { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <div class="loader-content">
+            <div class="loader-label">Loading</div>
+            <div id="loader-percent">0%</div>
+            <div id="loader-line"></div>
+        </div>
+    </div>
+
+    <canvas id="webgl-glass"></canvas>
+    <canvas id="pixel-canvas"></canvas>
+
+    <div id="menu-overlay">
+        <button class="close-btn" onclick="toggleMenu()">Zavřít</button>
+        <ul class="menu-links">
+            <li><a href="#about" class="menu-link" onclick="closeMenu()" style="transition-delay: 0.05s">O mně</a></li>
+            <li><a href="#services" class="menu-link" onclick="closeMenu()" style="transition-delay: 0.1s">Služby</a></li>
+            <li><a href="#projects" class="menu-link" onclick="closeMenu()" style="transition-delay: 0.15s">Projekty</a></li>
+            <li><a href="#contact" class="menu-link" onclick="closeMenu()" style="transition-delay: 0.2s">Kontakt</a></li>
+        </ul>
+    </div>
+
+    <nav id="navbar">
+        <div class="logo">PORTFOLIO.</div>
+        <button class="menu-btn" onclick="toggleMenu()">Menu +</button>
+    </nav>
+
+    <main>
+        <div class="hero">
+            <h1 class="hero-title">DIGITAL<br>DESIGNER</h1>
+            <div class="role">Creative Developer & 3D Artist</div>
+        </div>
+
+        <div class="marquee-wrapper">
+            <div class="marquee-content" id="marquee">
+                <span class="marquee-item">Creative Development</span>
+                <span class="marquee-item">Web Design</span>
+                <span class="marquee-item">3D Experiences</span>
+                <span class="marquee-item">Motion Graphics</span>
+                <span class="marquee-item">UI/UX</span>
+                <span class="marquee-item">Creative Development</span>
+                <span class="marquee-item">Web Design</span>
+                <span class="marquee-item">3D Experiences</span>
+            </div>
+        </div>
+
+        <section id="about">
+            <h2 class="section-headline reveal-text">Tvořím digitální zážitky, které propojují umění a kód.</h2>
+            <p class="reveal-text" style="font-size: 1.2rem; max-width: 800px; line-height: 1.6; transition-delay: 0.1s;">
+                Jsem vývojář posedlý detaily. Věřím, že web není jen o informacích, ale o pocitu. Používám Three.js, WebGL a moderní animace k vytvoření něčeho, co si lidé zapamatují.
+            </p>
+        </section>
+
+        <section id="services">
+            <h2 class="section-headline reveal-text">Služby</h2>
+            <div class="services-grid">
+                <div class="service-card reveal-text" style="transition-delay: 0.1s;">
+                    <span class="service-title">Web Design</span>
+                    <p>Minimalistický, čistý design zaměřený na typografii a prostor.</p>
+                </div>
+                <div class="service-card reveal-text" style="transition-delay: 0.2s;">
+                    <span class="service-title">3D Development</span>
+                    <p>Interaktivní 3D scény, které fungují plynule přímo v prohlížeči.</p>
+                </div>
+                <div class="service-card reveal-text" style="transition-delay: 0.3s;">
+                    <span class="service-title">Motion</span>
+                    <p>Pokročilé animace a mikro-interakce pro prémiový dojem.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects">
+            <h2 class="section-headline reveal-text">Vybrané práce</h2>
+            
+            <a href="#" class="project-item reveal-text">
+                <h2 class="project-name">Neon Gallery</h2>
+                <span>Web / 3D</span>
+            </a>
+            <a href="#" class="project-item reveal-text" style="transition-delay: 0.1s;">
+                <h2 class="project-name">Future Bank</h2>
+                <span>App Design</span>
+            </a>
+            <a href="#" class="project-item reveal-text" style="transition-delay: 0.2s;">
+                <h2 class="project-name">Urban Arch</h2>
+                <span>Portfolio</span>
+            </a>
+        </section>
+
+        <footer id="contact">
+            <div class="footer-content">
+                <span class="reveal-text section-label" style="text-transform: uppercase; color: #666; font-size: 0.9rem;">Spolupráce</span>
+                <h2 class="reveal-text section-headline" style="margin-top: 20px; font-size: 2.5rem;">Máte nápad?<br>Pojďme ho realizovat.</h2>
+                
+                <a href="mailto:hello@example.com" class="email-link reveal-text">hello@email.com</a>
+                
+                <div class="social-links reveal-text">
+                    <a href="javascript:void(0)" class="social-link">Instagram</a>
+                    <a href="javascript:void(0)" class="social-link">Twitter / X</a>
+                    <a href="javascript:void(0)" class="social-link">LinkedIn</a>
+                    <a href="javascript:void(0)" class="social-link">GitHub</a>
+                </div>
+            </div>
+
+            <div class="footer-meta reveal-text">
+                <span>© 2026 Jméno Příjmení</span>
+                <span>All rights reserved.</span>
+            </div>
+        </footer>
+    </main>
+
+    <!-- JS: LOGIKA -->
+    <script>
+        // LOADER
+        let loadProgress = 0;
+        const percentEl = document.getElementById('loader-percent');
+        const loaderLine = document.getElementById('loader-line');
+        const loader = document.getElementById('loader');
+        const heroTitle = document.querySelector('.hero-title');
+
+        const loadInterval = setInterval(() => {
+            loadProgress += Math.floor(Math.random() * 5) + 1;
+            if (loadProgress > 100) loadProgress = 100;
+            percentEl.textContent = loadProgress + '%';
+            loaderLine.style.transform = `scaleX(${loadProgress / 100})`;
+            if (loadProgress === 100) {
+                clearInterval(loadInterval);
+                setTimeout(() => {
+                    loader.style.transform = 'translateY(100%)';
+                    setTimeout(() => heroTitle.classList.add('animate'), 500);
+                }, 500);
+            }
+        }, 30);
+
+        // STICKY HEADER
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) navbar.classList.add('scrolled');
+            else navbar.classList.remove('scrolled');
+        });
+
+        // MENU
+        function toggleMenu() { document.getElementById('menu-overlay').classList.toggle('active'); }
+        function closeMenu() { document.getElementById('menu-overlay').classList.remove('active'); }
+
+        // HERO EFEKT
+        const splitText = (element) => {
+            const text = element.innerHTML;
+            element.innerHTML = text.split('<br>').map(line => {
+                return line.split('').map((char, i) => {
+                    if(char === ' ') return `<span class="char" style="transition-delay: ${i * 0.03}s">&nbsp;</span>`;
+                    return `<span class="char" style="transition-delay: ${i * 0.03}s">${char}</span>`;
+                }).join('');
+            }).join('<br>');
+        };
+        splitText(heroTitle);
+
+        // SCROLL REVEAL
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal-text').forEach(el => observer.observe(el));
+
+        // MARQUEE
+        let offset = 0; let speed = 2; 
+        const marqueeContent = document.getElementById('marquee');
+        let lastScrollY = window.scrollY; let scrollSpeed = 0;
+
+        window.addEventListener('scroll', () => {
+            const currentY = window.scrollY;
+            const delta = currentY - lastScrollY;
+            scrollSpeed = Math.abs(delta) * 0.5;
+            lastScrollY = currentY;
+        });
+
+        function animateMarquee() {
+            scrollSpeed *= 0.95; 
+            const finalSpeed = speed + scrollSpeed;
+            offset -= finalSpeed;
+            if (offset <= -marqueeContent.scrollWidth / 2) offset = 0;
+            marqueeContent.style.transform = `translateX(${offset}px)`;
+            requestAnimationFrame(animateMarquee);
+        }
+        marqueeContent.innerHTML += marqueeContent.innerHTML;
+        animateMarquee();
+    </script>
+
+    <!-- 3D SKLO S KLIK ROTACÍ (BEZ GLOW) -->
+    <script type="module">
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+        const canvas = document.querySelector('#webgl-glass');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xffffff);
+        
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.z = 20;
+
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+        // ČISTÉ SKLO
+        const geometry = new THREE.TorusKnotGeometry(3.5, 1.2, 128, 32);
+        const material = new THREE.MeshPhysicalMaterial({
+            color: 0xffffff, metalness: 0.1, roughness: 0.05,
+            transmission: 1, thickness: 2, ior: 1.5, clearcoat: 1, side: THREE.DoubleSide
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+        const l1 = new THREE.PointLight(0x44aaff, 3, 50); l1.position.set(-10, 5, 5); scene.add(l1);
+        const l2 = new THREE.PointLight(0xff44aa, 3, 50); l2.position.set(10, -5, 5); scene.add(l2);
+
+        // --- ROTACE LOGIKA (MYŠ + KLIK) ---
+        let targetRotationY = 0;
+        let currentRotationY = 0;
+        let mouseX = 0, mouseY = 0;
+        
+        // Nová proměnná pro impuls po kliknutí
+        let clickRotationVelocity = 0;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX - window.innerWidth/2) * 0.0005;
+            mouseY = (e.clientY - window.innerHeight/2) * 0.0005;
+        });
+
+        // Přidání impulzu při kliknutí (jen na desktopu, na mobilu to může rušit)
+        window.addEventListener('mousedown', () => {
+            if (window.innerWidth > 768) {
+                clickRotationVelocity = 0.2; // Síla roztočení
+            }
+        });
+
+        window.addEventListener('wheel', (e) => {
+            targetRotationY += e.deltaX * 0.005;
+        }, { passive: true });
+
+        // Mobile touch logic
+        let touchStartX = 0;
+        let touchPreviousX = 0;
+        let touchStartY = 0;
+        let touchPreviousY = 0;
+
+        window.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchPreviousX = touchStartX;
+            touchPreviousY = touchStartY;
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            const deltaX = currentX - touchPreviousX;
+            const deltaY = currentY - touchPreviousY;
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                targetRotationY += deltaX * 0.01;
+            }
+            touchPreviousX = currentX;
+            touchPreviousY = currentY;
+        }, { passive: true });
+
+        const clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            const t = clock.getElapsedTime();
+
+            const baseRotationX = Math.sin(t * 0.3) * 0.3 + mouseY;
+            const baseRotationY = t * 0.2 + mouseX;
+
+            // Aplikace fyziky scrollu
+            targetRotationY *= 0.95; 
+            currentRotationY += targetRotationY;
+
+            // Aplikace fyziky kliknutí
+            currentRotationY += clickRotationVelocity;
+            clickRotationVelocity *= 0.95; // Postupné zpomalování
+
+            mesh.rotation.x = baseRotationX;
+            mesh.rotation.y = baseRotationY + currentRotationY;
+            mesh.position.y = window.scrollY * 0.005;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth/window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+
+    <!-- PIXEL EFEKT (KULATÉ PIXELY) -->
+    <script>
+        const canvas = document.getElementById('pixel-canvas');
+        if (window.innerWidth > 768) {
+            const ctx = canvas.getContext('2d');
+            let width, height, gridSize = 20, cols, rows, grid = [], waves = [];
+
+            class Pixel {
+                constructor(x, y) {
+                    this.x = x; this.y = y; this.size = gridSize; this.alpha = 0; this.scale = 1; this.decay = 0.03 + Math.random()*0.02;
+                }
+                trigger() { this.alpha = 1; this.scale = 1; }
+                update() {
+                    if (this.alpha > 0) {
+                        this.alpha -= this.decay;
+                        this.scale = 0.3 + (this.alpha * 0.7);
+                        if (this.alpha < 0) this.alpha = 0;
+                    }
+                }
+                draw() {
+                    if (this.alpha > 0.01) {
+                        ctx.fillStyle = `rgba(0,0,0,${this.alpha})`;
+                        // ZMĚNA: Vykreslení kruhu místo čtverce
+                        const radius = (this.size * this.scale) / 2;
+                        ctx.beginPath();
+                        ctx.arc(this.x + this.size / 2, this.y + this.size / 2, radius, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+
+            class Wave {
+                constructor(x, y) {
+                    this.x = x; this.y = y; this.radius = 0; this.maxRadius = Math.max(width, height); this.speed = 25; this.active = true;
+                }
+                update() { this.radius += this.speed; if(this.radius > this.maxRadius) this.active = false; }
+            }
+
+            function init() {
+                width = window.innerWidth; height = window.innerHeight;
+                canvas.width = width; canvas.height = height;
+                cols = Math.ceil(width/gridSize); rows = Math.ceil(height/gridSize);
+                grid = new Array(cols).fill(0).map((_, i) => new Array(rows).fill(0).map((_, j) => new Pixel(i*gridSize, j*gridSize)));
+            }
+
+            window.addEventListener('mousedown', (e) => {
+                waves.push(new Wave(e.clientX, e.clientY));
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                const cx = Math.floor(e.clientX/gridSize), cy = Math.floor(e.clientY/gridSize), r = 2;
+                for(let i=-r; i<=r; i++) {
+                    for(let j=-r; j<=r; j++) {
+                        const col = cx+i, row = cy+j;
+                        if(col >= 0 && col < cols && row >= 0 && row < rows) {
+                            if(Math.random()>0.3) grid[col][row].trigger();
+                        }
+                    }
+                }
+            });
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                waves = waves.filter(w => w.active);
+                waves.forEach(w => w.update());
+                
+                for(let i=0; i<cols; i++) {
+                    for(let j=0; j<rows; j++) {
+                        const p = grid[i][j];
+                        waves.forEach(w => {
+                            const dx = p.x - w.x, dy = p.y - w.y, dist = Math.sqrt(dx*dx + dy*dy);
+                            if(Math.abs(dist - w.radius) < 30) p.trigger();
+                        });
+                        if(p.alpha > 0) { p.update(); p.draw(); }
+                    }
+                }
+                requestAnimationFrame(animate);
+            }
+
+            init(); animate();
+            window.addEventListener('resize', init);
+        }
+    </script>
+</body>
+</html>
