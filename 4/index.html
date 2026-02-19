@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanso | Minimalist Omakase</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@200;300;400&family=Zen+Old+Mincho&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'kanso-bg': '#F9F8F6', // Warm white/cream
+                        'kanso-text': '#2A2A2A', // Soft charcoal
+                        'kanso-accent': '#C4Bcb3', // Stone/Taupe
+                        'kanso-wood': '#8C7C6D', // Light Oak
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                        sans: ['"Montserrat"', 'sans-serif'],
+                        japanese: ['"Zen Old Mincho"', 'serif'],
+                    },
+                    spacing: {
+                        '128': '32rem',
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 1.2s ease-out forwards',
+                        'reveal': 'reveal 1.5s cubic-bezier(0.77, 0, 0.175, 1) forwards',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(40px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        reveal: {
+                            '0%': { transform: 'scaleX(1)' },
+                            '100%': { transform: 'scaleX(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #F9F8F6;
+            color: #2A2A2A;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F9F8F6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #C4Bcb3;
+            border-radius: 3px;
+        }
+
+        /* Vertical Text Utility */
+        .writing-vertical {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+        }
+
+        .image-overlay::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(42, 42, 42, 0.1); /* Slight dim for better text contrast if needed */
+        }
+        
+        .fade-element {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 px-6 py-8 md:px-12 flex justify-between items-center transition-all duration-300" id="navbar">
+        <a href="#" class="font-serif text-2xl tracking-widest uppercase z-50 mix-blend-difference text-kanso-text">Kanso.</a>
+        
+        <div class="hidden md:flex space-x-12 items-center">
+            <a href="#philosophy" class="font-sans text-xs tracking-[0.2em] hover:text-kanso-wood transition-colors uppercase">Philosophy</a>
+            <a href="#menu" class="font-sans text-xs tracking-[0.2em] hover:text-kanso-wood transition-colors uppercase">The Course</a>
+            <a href="#gallery" class="font-sans text-xs tracking-[0.2em] hover:text-kanso-wood transition-colors uppercase">Gallery</a>
+        </div>
+
+        <button onclick="document.getElementById('reservation').scrollIntoView({behavior: 'smooth'})" class="hidden md:block border border-kanso-text px-8 py-2 font-sans text-xs tracking-[0.2em] hover:bg-kanso-text hover:text-kanso-bg transition-all duration-300 uppercase">
+            Reserve
+        </button>
+
+        <!-- Mobile Menu Button -->
+        <button class="md:hidden z-50" onclick="toggleMobileMenu()">
+            <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu" class="fixed inset-0 bg-kanso-bg z-40 transform translate-x-full transition-transform duration-500 flex flex-col justify-center items-center space-y-8">
+        <a href="#philosophy" onclick="toggleMobileMenu()" class="font-serif text-3xl italic text-kanso-text">Philosophy</a>
+        <a href="#menu" onclick="toggleMobileMenu()" class="font-serif text-3xl italic text-kanso-text">The Course</a>
+        <a href="#reservation" onclick="toggleMobileMenu()" class="font-serif text-3xl italic text-kanso-text">Reserve</a>
+    </div>
+
+    <!-- Hero Section -->
+    <header class="relative w-full h-screen flex items-center justify-center overflow-hidden">
+        <!-- Vertical decorative text left -->
+        <div class="absolute left-6 md:left-12 top-1/2 -translate-y-1/2 hidden md:block z-10">
+            <p class="writing-vertical font-japanese text-sm tracking-[0.5em] text-kanso-wood">自然の味 • 職人の技</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="container mx-auto px-6 relative z-10 flex flex-col items-center">
+            <div class="relative w-full max-w-lg aspect-[4/5] md:aspect-square overflow-hidden mb-8 shadow-2xl shadow-[#0000000d]">
+                <!-- Reveal Overlay -->
+                <div class="absolute inset-0 bg-kanso-bg z-20 origin-right animate-reveal"></div>
+                <!-- High quality minimalist sushi image -->
+                <img src="https://images.unsplash.com/photo-1611143669185-af224c5e3252?q=80&w=2664&auto=format&fit=crop" alt="Single nigiri piece" class="object-cover w-full h-full transform scale-105 hover:scale-100 transition-transform duration-[2s]">
+            </div>
+
+            <h1 class="font-serif text-4xl md:text-6xl text-center font-light italic tracking-wide text-kanso-text mt-8 opacity-0 animate-fade-in-up" style="animation-delay: 0.5s;">
+                Art in Silence
+            </h1>
+            <p class="font-sans text-xs tracking-[0.3em] text-kanso-wood mt-4 uppercase opacity-0 animate-fade-in-up" style="animation-delay: 0.8s;">
+                Omakase Experience
+            </p>
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-50 animate-bounce">
+            <span class="writing-vertical font-sans text-[10px] tracking-widest uppercase">Scroll</span>
+            <div class="w-[1px] h-12 bg-kanso-text"></div>
+        </div>
+    </header>
+
+    <!-- Philosophy Section -->
+    <section id="philosophy" class="w-full py-32 bg-kanso-bg relative">
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="flex flex-col md:flex-row gap-16 md:gap-32 items-center">
+                <!-- Text -->
+                <div class="md:w-1/2 fade-element">
+                    <span class="block font-sans text-xs tracking-[0.2em] text-kanso-wood mb-6 uppercase">The Philosophy</span>
+                    <h2 class="font-serif text-3xl md:text-5xl leading-tight mb-8">
+                        The beauty of subtraction.<br>
+                        <span class="italic text-kanso-wood">Shokunin</span> spirit.
+                    </h2>
+                    <p class="font-sans font-light text-sm md:text-base leading-loose text-gray-600 mb-8 max-w-md">
+                        We believe that true luxury lies in simplicity. By removing the unnecessary, the essential speaks. Our ingredients are flown in daily from Toyosu Market, treated with reverence, and presented in a space designed to quiet the mind.
+                    </p>
+                    <div class="h-[1px] w-24 bg-kanso-text"></div>
+                </div>
+
+                <!-- Image Grid -->
+                <div class="md:w-1/2 w-full grid grid-cols-2 gap-4 fade-element">
+                    <div class="mt-12">
+                         <img src="https://images.unsplash.com/photo-1553621042-f6e147245754?q=80&w=2525&auto=format&fit=crop" alt="Chef hands" class="w-full h-64 object-cover grayscale-[20%] hover:grayscale-0 transition-all duration-700">
+                    </div>
+                    <div>
+                         <img src="https://images.unsplash.com/photo-1596450514806-03c155d315cb?q=80&w=2574&auto=format&fit=crop" alt="Minimalist interior" class="w-full h-80 object-cover grayscale-[20%] hover:grayscale-0 transition-all duration-700">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Divider -->
+    <div class="w-full flex justify-center py-12">
+        <div class="w-[1px] h-24 bg-gray-200"></div>
+    </div>
+
+    <!-- The Menu (Omakase) -->
+    <section id="menu" class="w-full py-24 md:py-32">
+        <div class="container mx-auto px-6 md:px-12 text-center">
+            <span class="block font-sans text-xs tracking-[0.2em] text-kanso-wood mb-4 uppercase fade-element">Seasonal Menu</span>
+            <h2 class="font-serif text-4xl md:text-5xl italic mb-16 fade-element">The Omakase</h2>
+
+            <div class="max-w-2xl mx-auto space-y-12">
+                
+                <!-- Course Item 1 -->
+                <div class="flex justify-between items-baseline border-b border-gray-200 pb-4 fade-element">
+                    <div class="text-left">
+                        <h3 class="font-serif text-xl md:text-2xl mb-1">Sakizuke</h3>
+                        <p class="font-sans text-xs tracking-wide text-gray-500">Seasonal Appetizer</p>
+                    </div>
+                </div>
+
+                <!-- Course Item 2 -->
+                <div class="flex justify-between items-baseline border-b border-gray-200 pb-4 fade-element">
+                    <div class="text-left">
+                        <h3 class="font-serif text-xl md:text-2xl mb-1">Zensai</h3>
+                        <p class="font-sans text-xs tracking-wide text-gray-500">Platter of 5 seasonal delicacies</p>
+                    </div>
+                </div>
+
+                <!-- Course Item 3 -->
+                <div class="flex justify-between items-baseline border-b border-gray-200 pb-4 fade-element">
+                    <div class="text-left">
+                        <h3 class="font-serif text-xl md:text-2xl mb-1">Nigiri</h3>
+                        <p class="font-sans text-xs tracking-wide text-gray-500">12 pieces of Chef's selection</p>
+                    </div>
+                </div>
+
+                <!-- Course Item 4 -->
+                <div class="flex justify-between items-baseline border-b border-gray-200 pb-4 fade-element">
+                    <div class="text-left">
+                        <h3 class="font-serif text-xl md:text-2xl mb-1">Wanmono</h3>
+                        <p class="font-sans text-xs tracking-wide text-gray-500">Clear soup with seasonal ingredients</p>
+                    </div>
+                </div>
+
+                <!-- Course Item 5 -->
+                <div class="flex justify-between items-baseline border-b border-gray-200 pb-4 fade-element">
+                    <div class="text-left">
+                        <h3 class="font-serif text-xl md:text-2xl mb-1">Mizugashi</h3>
+                        <p class="font-sans text-xs tracking-wide text-gray-500">Seasonal fruit & Japanese confection</p>
+                    </div>
+                </div>
+
+                <div class="pt-12 fade-element">
+                    <p class="font-serif text-3xl italic text-kanso-text">$250 <span class="text-sm font-sans not-italic text-gray-500 tracking-widest uppercase ml-2">Per Guest</span></p>
+                    <p class="mt-4 font-sans text-[10px] uppercase tracking-widest text-gray-400">Beverage pairing available upon request</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Full Width Parallax/Atmosphere Image -->
+    <div id="gallery" class="w-full h-96 md:h-[60vh] relative overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1552590635-27c2c2128abf?q=80&w=2670&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover grayscale-[30%]" alt="Texture details">
+        <div class="absolute inset-0 bg-[#F9F8F6] bg-opacity-20"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+            <div class="bg-kanso-bg p-8 md:p-12 text-center max-w-md mx-4">
+                <p class="font-serif text-2xl italic">"Simplicity is the ultimate sophistication."</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reservation Section -->
+    <section id="reservation" class="w-full py-32 bg-kanso-bg">
+        <div class="container mx-auto px-6 max-w-xl">
+            <div class="text-center mb-16 fade-element">
+                <span class="block font-sans text-xs tracking-[0.2em] text-kanso-wood mb-4 uppercase">Reservations</span>
+                <h2 class="font-serif text-4xl mb-4">Secure Your Seat</h2>
+                <p class="font-sans text-xs text-gray-500 tracking-wide">Limited to 8 seats per seating.</p>
+            </div>
+
+            <form class="space-y-12 fade-element" onsubmit="event.preventDefault(); alert('Request received. We will contact you shortly.');">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div class="group relative">
+                        <input type="text" id="name" required class="block py-2.5 px-0 w-full text-sm text-kanso-text bg-transparent border-0 border-b border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-kanso-wood peer" placeholder=" " />
+                        <label for="name" class="peer-focus:font-medium absolute text-xs uppercase tracking-widest text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-kanso-wood peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Name</label>
+                    </div>
+                    <div class="group relative">
+                        <input type="tel" id="phone" required class="block py-2.5 px-0 w-full text-sm text-kanso-text bg-transparent border-0 border-b border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-kanso-wood peer" placeholder=" " />
+                        <label for="phone" class="peer-focus:font-medium absolute text-xs uppercase tracking-widest text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-kanso-wood peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Phone</label>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div class="group relative">
+                        <input type="date" id="date" required class="block py-2.5 px-0 w-full text-sm text-kanso-text bg-transparent border-0 border-b border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-kanso-wood peer text-gray-500" />
+                        <label for="date" class="peer-focus:font-medium absolute text-xs uppercase tracking-widest text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-kanso-wood peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Date</label>
+                    </div>
+                    <div class="group relative">
+                        <select id="guests" class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-0 border-b border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-kanso-wood peer">
+                            <option>1 Guest</option>
+                            <option>2 Guests</option>
+                            <option>3 Guests</option>
+                            <option>4 Guests</option>
+                        </select>
+                        <label for="guests" class="peer-focus:font-medium absolute text-xs uppercase tracking-widest text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-kanso-wood peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Party Size</label>
+                    </div>
+                </div>
+
+                <div class="pt-8 text-center">
+                    <button type="submit" class="border border-kanso-text px-12 py-3 font-sans text-xs tracking-[0.2em] hover:bg-kanso-text hover:text-kanso-bg transition-all duration-500 uppercase">
+                        Request Booking
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Minimal Footer -->
+    <footer class="bg-[#F5F3EF] py-24 border-t border-gray-100">
+        <div class="container mx-auto px-6 flex flex-col items-center justify-center text-center space-y-8">
+            <h3 class="font-serif text-3xl tracking-widest uppercase">Kanso.</h3>
+            
+            <div class="flex flex-col md:flex-row gap-8 md:gap-16 font-sans text-xs tracking-widest text-gray-500 uppercase">
+                <p>123 Oakwood Lane, Kyoto District</p>
+                <p>+81 90 1234 5678</p>
+                <p>hello@kanso-omakase.com</p>
+            </div>
+
+            <div class="flex gap-6 mt-4">
+                <i data-lucide="instagram" class="w-4 h-4 text-gray-400 hover:text-kanso-text cursor-pointer transition-colors"></i>
+                <i data-lucide="facebook" class="w-4 h-4 text-gray-400 hover:text-kanso-text cursor-pointer transition-colors"></i>
+            </div>
+
+            <p class="text-[10px] text-gray-400 tracking-widest mt-12">© 2024 Kanso Omakase. Design by Gemini.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('translate-x-full');
+        }
+
+        // Scroll Animation Observer
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.15
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in-up');
+                    entry.target.style.opacity = '1';
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-element').forEach((el) => {
+            observer.observe(el);
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('bg-kanso-bg/90', 'backdrop-blur-sm', 'shadow-sm');
+            } else {
+                navbar.classList.remove('bg-kanso-bg/90', 'backdrop-blur-sm', 'shadow-sm');
+            }
+        });
+    </script>
+</body>
+</html>
