@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Komorebi | Aesthetic Coffee House</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        komorebi: {
+                            base: '#FDFBF7',     // Off-white paper
+                            stone: '#E6E2DD',    // Warm gray
+                            sage: '#6B705C',     // Muted green
+                            sageLight: '#A5A58D',
+                            clay: '#CB997E',     // Soft terracotta
+                            charcoal: '#2C2C2C', // Soft black
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Manrope', 'sans-serif'],
+                        serif: ['Italiana', 'serif'],
+                    },
+                    borderRadius: {
+                        'arch': '150px 150px 0 0',
+                        'arch-sm': '80px 80px 0 0',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Grain Texture Overlay */
+        .grain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Smooth Scroll */
+        html { 
+            scroll-behavior: smooth; 
+            scroll-padding-top: 100px;
+        }
+
+        /* Custom Selection */
+        ::selection {
+            background: #A5A58D;
+            color: white;
+        }
+
+        /* Scroll Reveal Animation Classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Staggered delays */
+        .delay-100 { transition-delay: 0.1s; }
+        .delay-200 { transition-delay: 0.2s; }
+        .delay-300 { transition-delay: 0.3s; }
+
+        /* Image Hover Zoom */
+        .img-zoom-container {
+            overflow: hidden;
+        }
+        .img-zoom {
+            transition: transform 1.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .group:hover .img-zoom {
+            transform: scale(1.05);
+        }
+
+        /* Rotating Badge */
+        .rotate-badge {
+            animation: spin 10s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Audio Visualizer Animation */
+        .bar {
+            /* Smooth transition for height changes via JS */
+            transition: height 0.1s linear; 
+            min-height: 10%; /* Ensure bars are always slightly visible */
+        }
+        
+        /* Fallback CSS animation (only used if JS Web Audio fails) */
+        .fallback-anim .bar {
+            animation: equalize 0.8s ease-in-out infinite alternate;
+        }
+        @keyframes equalize {
+            0% { height: 20%; }
+            100% { height: 100%; }
+        }
+        
+        /* Album Spin */
+        .playing #album-art img {
+            animation: spin 8s linear infinite;
+        }
+
+        /* Marquee Animation */
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Modal Transitions */
+        .modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+        .modal.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .modal.open .modal-content {
+            transform: scale(1);
+        }
+
+        /* Custom Range Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
+            background: transparent; /* Otherwise white in Chrome */
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 10px;
+            width: 10px;
+            border-radius: 50%;
+            background: #6B705C; /* Komorebi Sage */
+            cursor: pointer;
+            margin-top: -3px; /* You need to specify a margin in Chrome, but in Firefox and IE it is automatic */
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        input[type=range]::-moz-range-thumb {
+            height: 10px;
+            width: 10px;
+            border-radius: 50%;
+            background: #6B705C;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #E5E7EB; /* Gray-200 */
+            border-radius: 2px;
+        }
+
+        input[type=range]::-moz-range-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #E5E7EB;
+            border-radius: 2px;
+        }
+        
+        input[type=range]:focus {
+            outline: none;
+        }
+    </style>
+</head>
+<body class="font-sans bg-komorebi-base text-komorebi-charcoal antialiased overflow-x-hidden">
+
+    <!-- Grain Overlay for Film Look -->
+    <div class="grain-overlay"></div>
+
+    <!-- Sign In Modal (New) -->
+    <div id="signin-modal" class="modal fixed inset-0 z-[70] flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" id="signin-backdrop"></div>
+        <div class="modal-content bg-white w-full max-w-md p-6 md:p-10 rounded-2xl shadow-2xl relative z-50 text-center transition-all duration-300">
+            <button id="close-signin-btn" class="absolute top-4 right-4 text-gray-400 hover:text-komorebi-charcoal">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            
+            <span id="auth-subtitle" class="text-komorebi-sage text-xs font-bold uppercase tracking-widest">Welcome Back</span>
+            <h3 id="auth-title" class="text-2xl md:text-3xl font-serif mt-2 mb-8">Member Sign In</h3>
+
+            <!-- Login Form -->
+            <form id="login-form" class="space-y-4 text-left">
+                <div>
+                    <input type="email" id="login-email" placeholder="Email Address" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-komorebi-sage focus:bg-white transition">
+                </div>
+                <div>
+                    <input type="password" id="login-password" placeholder="Password" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-komorebi-sage focus:bg-white transition">
+                </div>
+                <button type="button" id="login-submit-btn" class="w-full bg-komorebi-charcoal text-white py-3 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-komorebi-sage transition shadow-lg">
+                    Enter
+                </button>
+            </form>
+
+            <!-- Register Form (Hidden initially) -->
+            <form id="register-form" class="space-y-4 text-left hidden">
+                <div>
+                    <input type="text" placeholder="Full Name" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-komorebi-sage focus:bg-white transition">
+                </div>
+                <div>
+                    <input type="email" id="register-email" placeholder="Email Address" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-komorebi-sage focus:bg-white transition">
+                </div>
+                <div>
+                    <input type="password" placeholder="Password" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-komorebi-sage focus:bg-white transition">
+                </div>
+                <button type="button" id="register-submit-btn" class="w-full bg-komorebi-charcoal text-white py-3 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-komorebi-sage transition shadow-lg">
+                    Join the Ritual
+                </button>
+            </form>
+            
+            <div class="mt-6 flex justify-between text-[10px] uppercase tracking-widest text-gray-400">
+                <button id="toggle-auth-btn" class="hover:text-komorebi-charcoal underline decoration-dotted underline-offset-4">Create Account</button>
+                <a href="#" class="hover:text-komorebi-charcoal">Forgot Password?</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-40 top-0 transition-all duration-300 bg-komorebi-base/80 backdrop-blur-md border-b border-transparent" id="navbar">
+        <div class="max-w-[1400px] mx-auto px-6 py-5 flex justify-between items-center">
+            <!-- Logo (Left) -->
+            <a href="#" class="text-3xl font-serif text-komorebi-charcoal tracking-wide relative group">
+                komorebi
+                <span class="absolute -bottom-1 left-1/2 w-0 h-px bg-komorebi-sage transition-all duration-500 group-hover:w-full group-hover:left-0"></span>
+            </a>
+
+            <!-- Right Side Container (Menu + Actions) -->
+            <div class="flex items-center gap-8 md:gap-12">
+                <!-- Menu Links -->
+                <div class="hidden md:flex space-x-8 text-xs font-semibold tracking-widest uppercase">
+                    <a href="#about-us" class="hover:text-komorebi-sage transition relative group">
+                        About
+                        <span class="absolute -bottom-1 left-0 w-0 h-px bg-komorebi-sage transition-all duration-300 group-hover:w-full"></span>
+                    </a>
+                    <a href="#process" class="hover:text-komorebi-sage transition relative group">
+                        Process
+                        <span class="absolute -bottom-1 left-0 w-0 h-px bg-komorebi-sage transition-all duration-300 group-hover:w-full"></span>
+                    </a>
+                    <a href="#menu" class="hover:text-komorebi-sage transition relative group">
+                        Menu
+                        <span class="absolute -bottom-1 left-0 w-0 h-px bg-komorebi-sage transition-all duration-300 group-hover:w-full"></span>
+                    </a>
+                    <a href="#gallery" class="hover:text-komorebi-sage transition relative group">
+                        Gallery
+                        <span class="absolute -bottom-1 left-0 w-0 h-px bg-komorebi-sage transition-all duration-300 group-hover:w-full"></span>
+                    </a>
+                    <a href="#contact" class="hover:text-komorebi-sage transition relative group">
+                        Contact
+                        <span class="absolute -bottom-1 left-0 w-0 h-px bg-komorebi-sage transition-all duration-300 group-hover:w-full"></span>
+                    </a>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center space-x-6 pl-0 md:pl-6 md:border-l border-komorebi-stone/50">
+                    <button id="header-res-btn" class="text-xs font-semibold tracking-widest uppercase hidden md:block hover:text-komorebi-sage transition">Reservations</button>
+                    <button id="header-signin-btn" class="text-xs font-semibold tracking-widest uppercase hidden md:block hover:text-komorebi-sage transition text-gray-500">Sign In</button>
+                    <button id="mobile-menu-btn" class="md:hidden text-lg w-8 h-8 flex items-center justify-center"><i class="fas fa-bars"></i></button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu" class="fixed inset-0 bg-komorebi-base z-[60] transform translate-x-full transition-transform duration-500 ease-in-out flex flex-col items-center justify-center">
+        <button id="close-menu-btn" class="absolute top-6 right-6 text-2xl w-10 h-10 rounded-full border border-komorebi-charcoal flex items-center justify-center hover:bg-komorebi-charcoal hover:text-white transition">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="flex flex-col space-y-8 text-center">
+            <a href="#about-us" class="text-4xl font-serif italic hover:text-komorebi-sage transition mobile-link">About Us</a>
+            <a href="#process" class="text-4xl font-serif italic hover:text-komorebi-sage transition mobile-link">Process</a>
+            <a href="#menu" class="text-4xl font-serif italic hover:text-komorebi-sage transition mobile-link">The Menu</a>
+            <a href="#gallery" class="text-4xl font-serif italic hover:text-komorebi-sage transition mobile-link">Gallery</a>
+            <a href="#contact" class="text-4xl font-serif italic hover:text-komorebi-sage transition mobile-link">Contact</a>
+            <button id="mobile-res-btn" class="text-4xl font-serif italic hover:text-komorebi-sage transition mobile-link">Reservations</button>
+            <button id="mobile-signin-btn" class="text-2xl font-serif italic text-gray-400 hover:text-komorebi-sage transition mobile-link mt-4">Member Sign In</button>
+        </div>
+        <div class="mt-12 flex space-x-6 text-xl text-komorebi-sage">
+            <i class="fab fa-instagram"></i>
+            <i class="fab fa-pinterest"></i>
+            <i class="fab fa-spotify"></i>
+        </div>
+    </div>
+
+    <!-- Order/Reservation Modal -->
+    <div id="order-modal" class="modal fixed inset-0 z-[70] flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" id="modal-backdrop"></div>
+        <div class="modal-content bg-komorebi-base w-full max-w-lg p-6 md:p-10 rounded-2xl shadow-2xl relative z-10 border border-white">
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-komorebi-charcoal">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            
+            <div class="text-center mb-8">
+                <span class="text-komorebi-sage text-xs font-bold uppercase tracking-widest">Table for Two</span>
+                <h3 class="text-2xl md:text-3xl font-serif mt-2">Reserve Your Spot</h3>
+            </div>
+
+            <form class="space-y-6">
+                <!-- Location -->
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">Location</label>
+                    <div class="relative">
+                        <select id="res-location" class="w-full bg-white appearance-none border border-komorebi-stone rounded-lg p-4 text-sm font-medium focus:outline-none focus:border-komorebi-sage transition cursor-pointer">
+                            <option value="Venice Beach">Venice Beach — The Sanctuary</option>
+                            <option value="Silver Lake">Silver Lake — Roastery</option>
+                            <option value="Arts District">Arts District — Slow Bar</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <!-- Date & Guests -->
+                <div class="grid grid-cols-2 gap-4">
+                     <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">Date</label>
+                        <input type="date" id="res-date" class="w-full bg-white border border-komorebi-stone rounded-lg p-4 text-sm font-medium focus:outline-none focus:border-komorebi-sage text-komorebi-charcoal uppercase">
+                     </div>
+                     <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">Guests</label>
+                        <div class="relative">
+                            <select id="res-guests" class="w-full bg-white appearance-none border border-komorebi-stone rounded-lg p-4 text-sm font-medium focus:outline-none focus:border-komorebi-sage cursor-pointer">
+                                <option value="1 Person">1 Person</option>
+                                <option value="2 People" selected>2 People</option>
+                                <option value="3 People">3 People</option>
+                                <option value="4 People">4 People</option>
+                                <option value="5+ People">5+ People</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                        </div>
+                     </div>
+                </div>
+
+                <!-- Time Slots -->
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-3">Available Times</label>
+                    <div class="grid grid-cols-3 sm:grid-cols-4 gap-2" id="time-slots">
+                        <button type="button" class="py-2 border border-komorebi-stone rounded-md text-xs font-bold hover:border-komorebi-sage hover:bg-komorebi-sage hover:text-white transition time-slot" data-time="8:00 AM">8:00 AM</button>
+                        <button type="button" class="py-2 border border-komorebi-stone rounded-md text-xs font-bold hover:border-komorebi-sage hover:bg-komorebi-sage hover:text-white transition time-slot" data-time="8:30 AM">8:30 AM</button>
+                        <button type="button" class="py-2 border border-komorebi-stone rounded-md text-xs font-bold bg-komorebi-charcoal text-white border-komorebi-charcoal transition time-slot active-time" data-time="9:00 AM">9:00 AM</button>
+                        <button type="button" class="py-2 border border-komorebi-stone rounded-md text-xs font-bold hover:border-komorebi-sage hover:bg-komorebi-sage hover:text-white transition time-slot" data-time="9:30 AM">9:30 AM</button>
+                        <button type="button" class="py-2 border border-komorebi-stone rounded-md text-xs font-bold hover:border-komorebi-sage hover:bg-komorebi-sage hover:text-white transition time-slot" data-time="10:00 AM">10:00 AM</button>
+                        <button type="button" class="py-2 border border-komorebi-stone rounded-md text-xs font-bold hover:border-komorebi-sage hover:bg-komorebi-sage hover:text-white transition time-slot" data-time="10:30 AM">10:30 AM</button>
+                        <button type="button" class="py-2 border border-komorebi-stone rounded-md text-xs font-bold hover:border-komorebi-sage hover:bg-komorebi-sage hover:text-white transition time-slot" data-time="11:00 AM">11:00 AM</button>
+                        <button type="button" class="py-2 border border-komorebi-stone rounded-md text-xs font-bold text-gray-300 border-gray-100 cursor-not-allowed">11:30 AM</button>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <button type="button" id="confirm-booking-btn" class="w-full bg-komorebi-charcoal text-white py-4 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-komorebi-sage transition shadow-lg mt-2">
+                    Confirm Booking
+                </button>
+            </form>
+            
+            <div class="mt-6 text-center">
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest">Free cancellation up to 2 hours before</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="about" class="relative pt-32 pb-20 md:pt-40 md:pb-32 px-6">
+        <div class="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+            
+            <!-- Text Content -->
+            <div class="md:col-span-4 z-10 reveal active">
+                <span class="text-komorebi-sage font-serif italic text-xl mb-4 block">Est. 2024</span>
+                <h1 class="text-5xl md:text-8xl font-serif leading-none mb-6 text-komorebi-charcoal">
+                    Slow <br>
+                    <span class="ml-12 italic text-komorebi-sage">Living</span> <br>
+                    Coffee.
+                </h1>
+                <p class="text-sm leading-relaxed max-w-xs mb-8 text-gray-500 tracking-wide">
+                    A sanctuary for the senses. Mindfully sourced beans, curated ceramics, and a space to breathe.
+                </p>
+                <div class="flex items-center gap-4">
+                    <button id="hero-order-btn" class="bg-komorebi-charcoal text-white px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-komorebi-sage transition duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
+                        Book a Table
+                    </button>
+                    <a href="#menu" class="w-12 h-12 flex items-center justify-center rounded-full border border-gray-300 hover:border-komorebi-charcoal transition group">
+                        <i class="fas fa-arrow-down text-xs ml-1 group-hover:translate-y-1 transition"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Hero Image (Arch) -->
+            <div class="md:col-span-5 md:col-start-6 relative reveal delay-200 active">
+                <!-- Rotating Badge -->
+                <div class="absolute -top-10 -right-10 md:-right-20 z-20 w-32 h-32 md:w-40 md:h-40 bg-komorebi-base rounded-full flex items-center justify-center shadow-lg">
+                    <svg class="w-full h-full rotate-badge" viewBox="0 0 100 100">
+                        <path id="curve" d="M 25, 50 a 25,25 0 1,1 50,0 a 25,25 0 1,1 -50,0" fill="transparent" />
+                        <text class="text-[11px] uppercase tracking-[2px] font-bold fill-komorebi-sage">
+                            <textPath href="#curve">
+                                Organic • Ethical • Pure •
+                            </textPath>
+                        </text>
+                    </svg>
+                    <i class="fas fa-leaf absolute text-komorebi-sage text-xl"></i>
+                </div>
+
+                <div class="h-[500px] md:h-[650px] w-full rounded-arch overflow-hidden shadow-2xl relative group img-zoom-container">
+                    <img src="https://images.unsplash.com/photo-1595928642581-f50f4f3453a5?q=80&w=2609&auto=format&fit=crop" alt="Coffee Pouring" class="w-full h-full object-cover img-zoom">
+                    <!-- Overlay Text -->
+                    <div class="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-black/40 to-transparent">
+                        <div class="flex justify-between items-end text-white">
+                            <span class="font-serif italic text-lg">Seasonal Blend</span>
+                            <span class="text-xs uppercase tracking-widest border border-white/50 px-3 py-1 rounded-full backdrop-blur-md bg-white/10">Now Brewing</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Side Visual (Interactive Audio Card) -->
+            <div class="hidden md:block md:col-span-2 relative mt-24 reveal delay-300 active flex flex-col items-center group">
+                 <div id="audio-card" class="h-96 w-full rounded-full bg-white border border-komorebi-stone overflow-hidden shadow-lg relative flex flex-col items-center justify-between py-10 transition-all duration-500 hover:shadow-2xl z-20 transform-gpu">
+                    
+                    <!-- Audio Source (Reliable Direct Link) -->
+                    <audio id="audio-track" crossorigin="anonymous" preload="auto">
+                        <source src="https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+
+                    <!-- Top: Visualizer -->
+                    <div class="flex gap-1.5 items-end h-12 flex-shrink-0" id="visualizer">
+                        <div class="bar w-1.5 bg-komorebi-sageLight rounded-full h-3"></div>
+                        <div class="bar w-1.5 bg-komorebi-sageLight rounded-full h-6"></div>
+                        <div class="bar w-1.5 bg-komorebi-sageLight rounded-full h-8"></div>
+                        <div class="bar w-1.5 bg-komorebi-sageLight rounded-full h-4"></div>
+                        <div class="bar w-1.5 bg-komorebi-sageLight rounded-full h-7"></div>
+                    </div>
+
+                    <!-- Middle: Track Info -->
+                    <div class="text-center z-10 flex-grow flex flex-col justify-center">
+                        <div id="album-art" class="w-28 h-28 shrink-0 rounded-full overflow-hidden mx-auto mb-6 border-4 border-komorebi-base shadow-lg relative">
+                             <img src="https://images.unsplash.com/photo-1511920170033-f8396924c348?q=80&w=2574&auto=format&fit=crop" class="w-full h-full object-cover opacity-90">
+                             <div class="absolute inset-0 bg-black/10"></div>
+                             <!-- Central hole for vinyl look -->
+                             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full border border-gray-100"></div>
+                        </div>
+                        <h4 class="font-serif italic text-xl text-komorebi-charcoal">Morning Ritual</h4>
+                        <p class="text-[10px] uppercase tracking-widest text-komorebi-sage mt-2">Sounds of Komorebi</p>
+                    </div>
+
+                    <!-- Bottom: Controls -->
+                    <div class="flex flex-col items-center justify-center w-full px-4 z-10 flex-shrink-0">
+                        <button id="play-btn" class="w-14 h-14 rounded-full bg-komorebi-charcoal text-white flex items-center justify-center hover:bg-komorebi-sage transition shadow-lg transform active:scale-95 group/btn">
+                            <i class="fas fa-play text-lg ml-1 group-hover/btn:scale-110 transition" id="play-icon"></i>
+                        </button>
+                    </div>
+                 </div>
+
+                 <!-- Volume Pill (Outside and Underneath) -->
+                 <div class="mt-6 flex items-center gap-3 bg-white/90 backdrop-blur-sm border border-komorebi-stone rounded-full px-5 py-2 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 transform -translate-y-4 group-hover:translate-y-0 transform-gpu" id="volume-container">
+                    <i class="fas fa-volume-down text-[10px] text-gray-400"></i>
+                    <!-- Removed utility classes conflicting with custom CSS -->
+                    <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.5" class="w-16 h-4 cursor-pointer">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scrolling Text -->
+    <div class="border-y border-komorebi-stone py-4 bg-white overflow-hidden">
+        <div class="flex whitespace-nowrap animate-[marquee_30s_linear_infinite]">
+            <span class="mx-8 font-serif italic text-2xl text-komorebi-sageLight">Morning Rituals</span>
+            <span class="mx-8 text-2xl text-komorebi-charcoal font-light">♦</span>
+            <span class="mx-8 font-serif italic text-2xl text-komorebi-sageLight">Artisan Pastries</span>
+            <span class="mx-8 text-2xl text-komorebi-charcoal font-light">♦</span>
+            <span class="mx-8 font-serif italic text-2xl text-komorebi-sageLight">Single Origin</span>
+            <span class="mx-8 text-2xl text-komorebi-charcoal font-light">♦</span>
+            <span class="mx-8 font-serif italic text-2xl text-komorebi-sageLight">Sustainable Sourcing</span>
+            <span class="mx-8 text-2xl text-komorebi-charcoal font-light">♦</span>
+            <span class="mx-8 font-serif italic text-2xl text-komorebi-sageLight">Slow Bar</span>
+            <span class="mx-8 text-2xl text-komorebi-charcoal font-light">♦</span>
+            <span class="mx-8 font-serif italic text-2xl text-komorebi-sageLight">Morning Rituals</span>
+             <span class="mx-8 text-2xl text-komorebi-charcoal font-light">♦</span>
+            <span class="mx-8 font-serif italic text-2xl text-komorebi-sageLight">Artisan Pastries</span>
+        </div>
+    </div>
+
+    <!-- About Us Section (New) -->
+    <section id="about-us" class="py-24 px-6 bg-white relative overflow-hidden">
+        <!-- Background Decor -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-komorebi-sage/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        
+        <div class="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+            <!-- Image Side -->
+            <div class="relative reveal">
+                <div class="aspect-[4/5] rounded-t-full overflow-hidden shadow-xl img-zoom-container group">
+                    <img src="https://images.unsplash.com/photo-1542181961-9590d0c79dab?q=80&w=2670&auto=format&fit=crop" alt="Sunlight through leaves" class="w-full h-full object-cover img-zoom">
+                </div>
+                <!-- Quote Card -->
+                <div class="absolute -bottom-8 -right-4 md:-right-8 bg-komorebi-base p-6 shadow-lg max-w-xs border border-komorebi-stone/50 hidden md:block">
+                    <p class="font-serif italic text-komorebi-sage text-lg">"Komorebi (n.)"</p>
+                    <p class="text-xs text-gray-500 mt-2 leading-relaxed">The interplay of light and leaves when sunlight filters through trees.</p>
+                </div>
+            </div>
+
+            <!-- Text Side -->
+            <div class="reveal delay-100">
+                <span class="text-xs font-bold tracking-[0.2em] text-komorebi-sage uppercase">Our Story</span>
+                <h2 class="text-4xl md:text-6xl font-serif mt-6 mb-8 text-komorebi-charcoal leading-tight">Finding Calm in the <span class="italic text-komorebi-sageLight">Chaos.</span></h2>
+                
+                <p class="text-gray-600 mb-6 leading-relaxed font-light text-lg">
+                    Founded in 2024, Komorebi began as a simple idea: that coffee shouldn't just be a jolt of caffeine, but a moment of pause. Inspired by the Japanese concept of fleeting natural beauty, we built a space designed to slow down time.
+                </p>
+                <p class="text-gray-600 mb-10 leading-relaxed font-light text-lg">
+                    We believe in transparent sourcing, minimalist design, and the art of the pour-over. Every bean tells a story of the soil it grew in and the hands that harvested it. We are simply the storytellers.
+                </p>
+
+                <div class="flex items-center gap-4">
+                    <div class="flex -space-x-4">
+                        <img class="w-12 h-12 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=2000&auto=format&fit=crop" alt="Founder 1">
+                        <img class="w-12 h-12 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=2000&auto=format&fit=crop" alt="Founder 2">
+                    </div>
+                    <div>
+                        <p class="font-serif text-lg">The Founders</p>
+                        <p class="text-xs text-komorebi-sage uppercase tracking-wider">Elena & Marcus</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Ritual / Process Section (Moved under About Us) -->
+    <section id="process" class="py-24 px-6 bg-komorebi-base border-t border-komorebi-stone/30">
+        <div class="max-w-[1400px] mx-auto">
+             <div class="text-center mb-16 reveal">
+                <h3 class="font-serif italic text-3xl text-komorebi-charcoal">Our Process</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+                <!-- Step 1 -->
+                <div class="reveal flex flex-col items-center">
+                    <div class="w-20 h-20 rounded-full bg-komorebi-stone/30 flex items-center justify-center mb-6 text-3xl text-komorebi-sage">
+                        <i class="fas fa-globe-americas"></i>
+                    </div>
+                    <h3 class="font-serif text-2xl mb-3">Ethical Sourcing</h3>
+                    <p class="text-sm text-gray-500 max-w-xs leading-relaxed">We partner directly with small-lot farms in Ethiopia and Colombia, ensuring fair wages and sustainable growth.</p>
+                </div>
+                <!-- Step 2 -->
+                <div class="reveal delay-100 flex flex-col items-center">
+                    <div class="w-20 h-20 rounded-full bg-komorebi-stone/30 flex items-center justify-center mb-6 text-3xl text-komorebi-sage">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <h3 class="font-serif text-2xl mb-3">Small Batch Roast</h3>
+                    <p class="text-sm text-gray-500 max-w-xs leading-relaxed">Roasted daily in micro-batches to bring out the delicate floral and fruity notes of each bean.</p>
+                </div>
+                <!-- Step 3 -->
+                <div class="reveal delay-200 flex flex-col items-center">
+                    <div class="w-20 h-20 rounded-full bg-komorebi-stone/30 flex items-center justify-center mb-6 text-3xl text-komorebi-sage">
+                        <i class="fas fa-mug-hot"></i>
+                    </div>
+                    <h3 class="font-serif text-2xl mb-3">Mindful Brewing</h3>
+                    <p class="text-sm text-gray-500 max-w-xs leading-relaxed">Precise temperatures and weights. Every cup is a testament to the ritual of slow living.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Editorial Menu Section -->
+    <section id="menu" class="py-24 px-6 bg-[#FAF9F6]">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-16 reveal">
+                <span class="text-xs font-bold tracking-[0.2em] text-komorebi-sage uppercase">The Collection</span>
+                <h2 class="text-4xl md:text-5xl font-serif mt-4 text-komorebi-charcoal">Curated Sips & Bites</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-20">
+                <!-- Column 1: Espresso -->
+                <div class="reveal delay-100">
+                    <h3 class="font-serif italic text-2xl mb-8 border-b border-komorebi-stone pb-2 text-komorebi-sage">Espresso Bar</h3>
+                    
+                    <div class="space-y-8">
+                        <div class="group cursor-pointer">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <h4 class="text-lg font-medium group-hover:text-komorebi-clay transition">Honey Oat Latte</h4>
+                                <span class="font-serif text-lg">$6.50</span>
+                            </div>
+                            <p class="text-xs text-gray-500 font-light">House-made wildflower honey syrup, oat milk, double shot.</p>
+                        </div>
+
+                        <div class="group cursor-pointer">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <h4 class="text-lg font-medium group-hover:text-komorebi-clay transition">Flat White</h4>
+                                <span class="font-serif text-lg">$4.75</span>
+                            </div>
+                            <p class="text-xs text-gray-500 font-light">Micro-foam, ristretto shots, ceramic cup.</p>
+                        </div>
+
+                        <div class="group cursor-pointer">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <h4 class="text-lg font-medium group-hover:text-komorebi-clay transition">Lavender Mocha</h4>
+                                <span class="font-serif text-lg">$6.00</span>
+                            </div>
+                            <p class="text-xs text-gray-500 font-light">Raw cacao, lavender buds, steamed milk.</p>
+                        </div>
+
+                        <div class="group cursor-pointer">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <h4 class="text-lg font-medium group-hover:text-komorebi-clay transition">Cortado</h4>
+                                <span class="font-serif text-lg">$4.50</span>
+                            </div>
+                            <p class="text-xs text-gray-500 font-light">Equal parts espresso and warm milk, 4oz.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 2: Signature -->
+                <div class="reveal delay-200">
+                    <h3 class="font-serif italic text-2xl mb-8 border-b border-komorebi-stone pb-2 text-komorebi-sage">Signatures</h3>
+                    
+                    <div class="space-y-8">
+                        <div class="group cursor-pointer">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <h4 class="text-lg font-medium group-hover:text-komorebi-clay transition">Matcha Cloud</h4>
+                                <span class="font-serif text-lg">$7.00</span>
+                            </div>
+                            <p class="text-xs text-gray-500 font-light">Ceremonial grade matcha, vanilla cold foam, iced.</p>
+                        </div>
+
+                        <div class="group cursor-pointer">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <h4 class="text-lg font-medium group-hover:text-komorebi-clay transition">Espresso Tonic</h4>
+                                <span class="font-serif text-lg">$5.50</span>
+                            </div>
+                            <p class="text-xs text-gray-500 font-light">Double shot, fever tree tonic, rosemary sprig, orange peel.</p>
+                        </div>
+
+                        <div class="group cursor-pointer">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <h4 class="text-lg font-medium group-hover:text-komorebi-clay transition">Golden Milk</h4>
+                                <span class="font-serif text-lg">$5.25</span>
+                            </div>
+                            <p class="text-xs text-gray-500 font-light">Turmeric blend, ginger, black pepper, almond milk (caffeine free).</p>
+                        </div>
+
+                        <div class="group cursor-pointer">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <h4 class="text-lg font-medium group-hover:text-komorebi-clay transition">Hojicha Latte</h4>
+                                <span class="font-serif text-lg">$6.00</span>
+                            </div>
+                            <p class="text-xs text-gray-500 font-light">Roasted green tea powder, maple syrup, oat milk.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 3: Slow Bar (New) -->
+                <div class="reveal delay-100">
+                    <h3 class="font-serif italic text-2xl mb-8 border-b border-komorebi-stone pb-2 text-komorebi-sage">Slow Bar</h3>
+                    
+                    <div class="space-y-8">
+                        <div class="group cursor-pointer">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <h4 class="text-lg font-medium group-hover:text-komorebi-clay transition">Ethiopia Yirgacheffe</h4>
+                                <span class="font-serif text-lg">$5.50</span>
+                            </div>
+                            <p class="text-xs text-gray-500 font-light">Washed process. Notes of jasmine, bergamot, and lemon zest.</p>
+                        </div>
+
+                        <div class="group cursor-pointer">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <h4 class="text-lg font-medium group-hover:text-komorebi-clay transition">Colombia Huila</h4>
+                                <span class="font-serif text-lg">$5.00</span>
+                            </div>
+                            <p class="text-xs text-gray-500 font-light">Pink Bourbon. Caramel, red apple, citrus acidity.</p>
+                        </div>
+
+                        <div class="group cursor-pointer">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <h4 class="text-lg font-medium group-hover:text-komorebi-clay transition">Gesha Village 1931</h4>
+                                <span class="font-serif text-lg">$9.00</span>
+                            </div>
+                            <p class="text-xs text-gray-500 font-light">Natural process. Honeysuckle, peach, papaya complex.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 4: Nourishment (New) -->
+                <div class="reveal delay-200">
+                    <h3 class="font-serif italic text-2xl mb-8 border-b border-komorebi-stone pb-2 text-komorebi-sage">Nourishment</h3>
+                    
+                    <div class="space-y-8">
+                        <div class="group cursor-pointer">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <h4 class="text-lg font-medium group-hover:text-komorebi-clay transition">Cardamom Bun</h4>
+                                <span class="font-serif text-lg">$4.50</span>
+                            </div>
+                            <p class="text-xs text-gray-500 font-light">Sourdough brioche, roasted cardamom sugar, pearl sugar.</p>
+                        </div>
+
+                        <div class="group cursor-pointer">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <h4 class="text-lg font-medium group-hover:text-komorebi-clay transition">Avocado Tartine</h4>
+                                <span class="font-serif text-lg">$11.00</span>
+                            </div>
+                            <p class="text-xs text-gray-500 font-light">Rustic sourdough, radish, micro-greens, chili oil, sea salt.</p>
+                        </div>
+
+                        <div class="group cursor-pointer">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <h4 class="text-lg font-medium group-hover:text-komorebi-clay transition">Matcha Opera Cake</h4>
+                                <span class="font-serif text-lg">$6.50</span>
+                            </div>
+                            <p class="text-xs text-gray-500 font-light">Layers of almond sponge, matcha ganache, buttercream.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-16 text-center reveal">
+                <a href="#" class="inline-block border-b border-black pb-1 text-xs uppercase tracking-widest hover:text-komorebi-sage hover:border-komorebi-sage transition">View Full Menu</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section (New) -->
+    <section id="gallery" class="py-24 px-6 bg-white">
+        <div class="max-w-[1400px] mx-auto">
+             <div class="text-center mb-16 reveal">
+                <span class="text-xs font-bold tracking-[0.2em] text-komorebi-sage uppercase">The Journal</span>
+                <h2 class="text-4xl md:text-5xl font-serif mt-4 text-komorebi-charcoal">Captured Moments</h2>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 grid-rows-2 gap-4 h-auto md:h-[600px]">
+                <!-- Large Left -->
+                <div class="col-span-2 row-span-2 relative group overflow-hidden rounded-2xl reveal delay-100 h-[300px] md:h-auto">
+                    <img src="https://images.unsplash.com/photo-1445116572660-236099ec97a0?q=80&w=2694&auto=format&fit=crop" class="w-full h-full object-cover img-zoom" alt="Latte Art">
+                     <div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition duration-500"></div>
+                </div>
+                <!-- Small Top Middle -->
+                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-2xl reveal delay-200 h-[150px] md:h-auto">
+                    <img src="https://images.unsplash.com/photo-1498804103079-a6351b050096?q=80&w=2574&auto=format&fit=crop" class="w-full h-full object-cover img-zoom" alt="Pour over">
+                </div>
+                <!-- Small Top Right -->
+                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-2xl reveal delay-300 h-[150px] md:h-auto">
+                    <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=2547&auto=format&fit=crop" class="w-full h-full object-cover img-zoom" alt="Cafe Interior">
+                </div>
+                <!-- Wide Bottom -->
+                <div class="col-span-2 row-span-1 relative group overflow-hidden rounded-2xl reveal delay-300 h-[150px] md:h-auto">
+                    <img src="https://images.unsplash.com/photo-1525610553991-2bede1a236e2?q=80&w=2574&auto=format&fit=crop" class="w-full h-full object-cover img-zoom" alt="Minimalist Cup">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Image Grid (Arch + Square) -->
+    <section class="py-20 px-4 md:px-12">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:h-[600px]">
+            
+            <!-- Left Large -->
+            <div class="md:col-span-1 h-96 md:h-full relative group overflow-hidden rounded-t-full reveal">
+                <img src="https://images.unsplash.com/photo-1511920170033-f8396924c348?q=80&w=2574&auto=format&fit=crop" alt="Interior" class="w-full h-full object-cover img-zoom">
+                <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition duration-500 flex items-center justify-center">
+                    <span class="text-white font-serif italic text-2xl">The Space</span>
+                </div>
+            </div>
+
+            <!-- Middle Column -->
+            <div class="md:col-span-1 flex flex-col gap-4 h-full">
+                <div class="h-1/2 w-full bg-komorebi-sage/10 rounded-3xl flex items-center justify-center p-8 text-center reveal delay-100">
+                    <div>
+                        <i class="fas fa-seedling text-3xl text-komorebi-sage mb-4"></i>
+                        <h4 class="font-serif text-xl mb-2">Sustainable</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">We compost 100% of our coffee grounds and use only biodegradable packaging.</p>
+                    </div>
+                </div>
+                <div class="h-1/2 w-full relative group overflow-hidden rounded-3xl reveal delay-200">
+                    <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=2574&auto=format&fit=crop" class="w-full h-full object-cover img-zoom">
+                </div>
+            </div>
+
+            <!-- Right Large -->
+            <div class="md:col-span-1 h-96 md:h-full relative group overflow-hidden rounded-b-full mt-4 md:mt-0 reveal delay-300">
+                <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=2670&auto=format&fit=crop" alt="Barista" class="w-full h-full object-cover img-zoom">
+                <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition duration-500 flex items-center justify-center">
+                    <span class="text-white font-serif italic text-2xl">The Craft</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Map / Contact Section (New) -->
+    <section id="contact" class="py-24 px-6 bg-komorebi-base">
+        <div class="max-w-[1400px] mx-auto">
+            <div class="text-center mb-16 reveal">
+                <span class="text-xs font-bold tracking-[0.2em] text-komorebi-sage uppercase">Find Us</span>
+                <h2 class="text-4xl md:text-5xl font-serif mt-4 text-komorebi-charcoal">The Sanctuary</h2>
+            </div>
+
+            <div class="relative w-full h-[500px] rounded-2xl overflow-hidden shadow-xl reveal delay-100 border border-komorebi-stone">
+                <!-- Overlay to ensure map matches aesthetic (desaturated) -->
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3307.5739347895116!2d-118.46513432353148!3d33.99097747318021!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80c2bac960715321%3A0x6b4421df6500473!2sAbbot%20Kinney%20Blvd%2C%20Venice%2C%20CA%2C%20USA!5e0!3m2!1sen!2sus!4v1715428000000!5m2!1sen!2sus" 
+                    width="100%" 
+                    height="100%" 
+                    style="border:0; filter: grayscale(1) contrast(0.9) opacity(0.8);" 
+                    allowfullscreen="" 
+                    loading="lazy" 
+                    referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+                
+                <!-- Floating Info Card (Optimized for Mobile) -->
+                <div class="absolute bottom-6 left-6 md:bottom-12 md:left-12 bg-white p-6 md:p-8 w-[calc(100%-3rem)] md:w-auto md:max-w-sm rounded-xl shadow-2xl border border-komorebi-stone/50">
+                    <h3 class="font-serif italic text-xl md:text-2xl text-komorebi-charcoal mb-4">Venice Beach</h3>
+                    <div class="space-y-4 text-xs md:text-sm text-gray-600">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-map-marker-alt text-komorebi-sage mt-1"></i>
+                            <p>128 Abbot Kinney Blvd<br>Venice, CA 90291</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="far fa-clock text-komorebi-sage mt-1"></i>
+                            <div>
+                                <p><span class="font-bold text-[10px] md:text-xs uppercase tracking-wide">Mon - Fri:</span> 7am - 6pm</p>
+                                <p><span class="font-bold text-[10px] md:text-xs uppercase tracking-wide">Sat - Sun:</span> 8am - 7pm</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-phone text-komorebi-sage mt-1"></i>
+                            <p>(310) 555-0123</p>
+                        </div>
+                    </div>
+                    <button class="mt-6 w-full py-3 border border-komorebi-charcoal text-komorebi-charcoal text-xs font-bold uppercase tracking-widest hover:bg-komorebi-charcoal hover:text-white transition">
+                        Get Directions
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-komorebi-stone/30 pt-20 pb-10 px-6 border-t border-white">
+        <div class="max-w-[1400px] mx-auto flex flex-col md:flex-row justify-between items-start md:items-end gap-10">
+            
+            <!-- Address -->
+            <div>
+                <h4 class="font-serif italic text-3xl mb-6 text-komorebi-charcoal">komorebi</h4>
+                <div class="flex flex-col md:flex-row gap-12 text-sm text-gray-600 font-light">
+                    <div>
+                        <p class="uppercase tracking-widest text-xs font-bold mb-2 text-komorebi-sage">Visit</p>
+                        <p>128 Abbot Kinney Blvd</p>
+                        <p>Venice, CA 90291</p>
+                    </div>
+                    <div>
+                        <p class="uppercase tracking-widest text-xs font-bold mb-2 text-komorebi-sage">Hours</p>
+                        <p>Mon - Fri: 7am - 6pm</p>
+                        <p>Sat - Sun: 8am - 7pm</p>
+                    </div>
+                    <div>
+                        <p class="uppercase tracking-widest text-xs font-bold mb-2 text-komorebi-sage">Contact</p>
+                        <p>hello@komorebi.coffee</p>
+                        <p>@komorebi.brew</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Newsletter (Restored) -->
+            <div class="w-full md:w-auto">
+                <p class="font-serif italic text-lg mb-4">Join the ritual.</p>
+                <div class="flex border-b border-komorebi-charcoal pb-2">
+                    <input type="email" placeholder="Email Address" class="bg-transparent w-full md:w-64 focus:outline-none placeholder-gray-400 text-sm">
+                    <button class="text-xs uppercase font-bold hover:text-komorebi-sage transition">Submit</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-[1400px] mx-auto mt-16 flex justify-between items-center text-[10px] text-gray-400 uppercase tracking-widest">
+            <p>&copy; 2024 Komorebi Coffee House</p>
+            <div class="flex gap-4">
+                <a href="#" class="hover:text-komorebi-charcoal">Privacy</a>
+                <a href="#" class="hover:text-komorebi-charcoal">Terms</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive Scripts -->
+    <script>
+        // --- Mobile Menu Logic ---
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const closeMenuBtn = document.getElementById('close-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+
+        function toggleMenu() {
+            mobileMenu.classList.toggle('translate-x-full');
+            document.body.classList.toggle('overflow-hidden');
+        }
+
+        mobileMenuBtn.addEventListener('click', toggleMenu);
+        closeMenuBtn.addEventListener('click', toggleMenu);
+        
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', toggleMenu);
+        });
+
+        // --- Order Modal Logic ---
+        const heroOrderBtn = document.getElementById('hero-order-btn');
+        const headerResBtn = document.getElementById('header-res-btn');
+        const mobileResBtn = document.getElementById('mobile-res-btn');
+        const modal = document.getElementById('order-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const modalBackdrop = document.getElementById('modal-backdrop');
+
+        function toggleModal() {
+            modal.classList.toggle('open');
+            // If opening from mobile menu, ensure mobile menu closes
+            if (mobileMenu.classList.contains('translate-x-0') && modal.classList.contains('open')) {
+               toggleMenu();
+            }
+        }
+
+        if(heroOrderBtn) heroOrderBtn.addEventListener('click', (e) => { e.preventDefault(); toggleModal(); });
+        if(headerResBtn) headerResBtn.addEventListener('click', (e) => { e.preventDefault(); toggleModal(); });
+        if(mobileResBtn) mobileResBtn.addEventListener('click', (e) => { e.preventDefault(); toggleModal(); });
+
+        closeModalBtn.addEventListener('click', toggleModal);
+        modalBackdrop.addEventListener('click', toggleModal);
+
+        // --- Sign In Modal Logic ---
+        const headerSigninBtn = document.getElementById('header-signin-btn');
+        const mobileSigninBtn = document.getElementById('mobile-signin-btn');
+        const signinModal = document.getElementById('signin-modal');
+        const closeSigninBtn = document.getElementById('close-signin-btn');
+        const signinBackdrop = document.getElementById('signin-backdrop');
+
+        function toggleSignin() {
+            signinModal.classList.toggle('open');
+             if (mobileMenu.classList.contains('translate-x-0') && signinModal.classList.contains('open')) {
+               toggleMenu();
+            }
+        }
+
+        if(headerSigninBtn) headerSigninBtn.addEventListener('click', (e) => { e.preventDefault(); toggleSignin(); });
+        if(mobileSigninBtn) mobileSigninBtn.addEventListener('click', (e) => { e.preventDefault(); toggleSignin(); });
+        
+        closeSigninBtn.addEventListener('click', toggleSignin);
+        signinBackdrop.addEventListener('click', toggleSignin);
+
+        // --- Auth Toggle Logic (Login <-> Create Account) ---
+        const toggleAuthBtn = document.getElementById('toggle-auth-btn');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const authTitle = document.getElementById('auth-title');
+        const authSubtitle = document.getElementById('auth-subtitle');
+        const registerSubmitBtn = document.getElementById('register-submit-btn');
+        const loginSubmitBtn = document.getElementById('login-submit-btn');
+        
+        let isLoginView = true;
+
+        // Validation Helper
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function handleAuthValidation(emailInputId) {
+            const emailInput = document.getElementById(emailInputId);
+            const email = emailInput.value;
+            
+            // Reset error styles
+            emailInput.classList.remove('border-red-500', 'bg-red-50');
+            emailInput.classList.add('border-gray-200', 'bg-gray-50');
+
+            if (!isValidEmail(email)) {
+                // Apply error styles
+                emailInput.classList.remove('border-gray-200', 'bg-gray-50');
+                emailInput.classList.add('border-red-500', 'bg-red-50');
+                
+                alert("Please enter a valid email address.");
+                return false;
+            }
+            return true;
+        }
+
+        // --- Admin Panel Renderer ---
+        function renderAdminPanel() {
+            // Mock Data for other sections
+            const inventory = [
+                { item: 'Ethiopia Yirgacheffe Beans', category: 'Coffee', stock: '2 kg', status: 'Low', statusColor: 'red' },
+                { item: 'Oat Milk (Barista Edition)', category: 'Dairy', stock: '12 Liters', status: 'OK', statusColor: 'green' },
+                { item: 'Matcha Powder (Ceremonial)', category: 'Tea', stock: '500 g', status: 'OK', statusColor: 'green' },
+                { item: 'Paper Cups (12oz)', category: 'Supplies', stock: '800 units', status: 'OK', statusColor: 'green' },
+                { item: 'Vanilla Syrup (House)', category: 'Syrup', stock: '3 Bottles', status: 'Warning', statusColor: 'yellow' },
+                { item: 'Croissants (Frozen)', category: 'Food', stock: '15 units', status: 'Low', statusColor: 'red' },
+            ];
+
+            const customers = [
+                { name: 'Alex M.', email: 'alex.m@example.com', visits: 12, lastVisit: '2 days ago', totalSpent: '$145.50' },
+                { name: 'Sarah J.', email: 'sarah.j@example.com', visits: 4, lastVisit: '1 week ago', totalSpent: '$42.00' },
+                { name: 'David K.', email: 'david.k@example.com', visits: 28, lastVisit: 'Yesterday', totalSpent: '$310.25' },
+                { name: 'Jessica W.', email: 'jess.w@example.com', visits: 1, lastVisit: 'Today', totalSpent: '$7.00' },
+                { name: 'Michael B.', email: 'mike.b@example.com', visits: 8, lastVisit: '3 days ago', totalSpent: '$88.00' },
+            ];
+
+            // Helper to get Reservations (Dynamic from LocalStorage)
+            const getReservations = () => JSON.parse(localStorage.getItem('komorebi_reservations') || '[]');
+
+            // --- HTML Generators for Views ---
+
+            const getDashboardView = () => {
+                const resCount = getReservations().length;
+                return `
+                    <div class="p-6 md:p-8">
+                        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                            <h2 class="text-2xl font-serif font-bold text-gray-800">Dashboard Overview</h2>
+                            <div class="text-sm text-gray-500">${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                        </header>
+                        
+                        <!-- Stats Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+                             <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex flex-col">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Total Revenue</span>
+                                <div class="flex justify-between items-end">
+                                    <h3 class="text-3xl font-bold text-gray-800">$12,450</h3>
+                                    <span class="text-xs font-bold text-green-500 bg-green-50 px-2 py-1 rounded-full">+15%</span>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex flex-col">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Active Reservations</span>
+                                <div class="flex justify-between items-end">
+                                    <h3 class="text-3xl font-bold text-gray-800">${resCount}</h3>
+                                    <span class="text-xs font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-full">Booked</span>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex flex-col">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Inventory Alert</span>
+                                <div class="flex justify-between items-end">
+                                    <h3 class="text-3xl font-bold text-gray-800">Low</h3>
+                                    <span class="text-xs font-bold text-red-500 bg-red-50 px-2 py-1 rounded-full">Oat Milk</span>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex flex-col">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">New Members</span>
+                                <div class="flex justify-between items-end">
+                                    <h3 class="text-3xl font-bold text-gray-800">+128</h3>
+                                    <span class="text-xs font-bold text-green-500 bg-green-50 px-2 py-1 rounded-full">This Week</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dashboard Charts Area -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                             <!-- Chart Area (Static) -->
+                                <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                                    <div class="flex justify-between items-center mb-6">
+                                        <h3 class="font-serif font-bold text-lg">Weekly Traffic</h3>
+                                        <select class="text-xs border border-gray-200 rounded px-2 py-1 bg-transparent focus:outline-none">
+                                            <option>Last 7 Days</option>
+                                        </select>
+                                    </div>
+                                    <div class="h-64 flex items-end justify-between gap-2 px-2">
+                                        <div class="w-full bg-komorebi-stone/30 rounded-t-sm relative group" style="height: 45%"><div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 text-[10px] opacity-0 group-hover:opacity-100 transition">45</div></div>
+                                        <div class="w-full bg-komorebi-sage/60 rounded-t-sm relative group" style="height: 75%"><div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 text-[10px] opacity-0 group-hover:opacity-100 transition">75</div></div>
+                                        <div class="w-full bg-komorebi-stone/30 rounded-t-sm relative group" style="height: 55%"><div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 text-[10px] opacity-0 group-hover:opacity-100 transition">55</div></div>
+                                        <div class="w-full bg-komorebi-stone/30 rounded-t-sm relative group" style="height: 35%"><div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 text-[10px] opacity-0 group-hover:opacity-100 transition">35</div></div>
+                                        <div class="w-full bg-komorebi-sage rounded-t-sm relative group" style="height: 85%"><div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 text-[10px] opacity-0 group-hover:opacity-100 transition">85</div></div>
+                                        <div class="w-full bg-komorebi-stone/30 rounded-t-sm relative group" style="height: 60%"><div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 text-[10px] opacity-0 group-hover:opacity-100 transition">60</div></div>
+                                        <div class="w-full bg-komorebi-stone/30 rounded-t-sm relative group" style="height: 50%"><div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 text-[10px] opacity-0 group-hover:opacity-100 transition">50</div></div>
+                                    </div>
+                                    <div class="flex justify-between mt-2 text-[10px] text-gray-400 uppercase font-bold">
+                                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                                    </div>
+                                </div>
+
+                                <!-- Recent Activity -->
+                                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                                    <h3 class="font-serif font-bold text-lg mb-6">Activity Feed</h3>
+                                    <div class="space-y-6">
+                                        <div class="flex items-start gap-4">
+                                            <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 text-xs shrink-0"><i class="fas fa-calendar-check"></i></div>
+                                            <div>
+                                                <p class="text-sm font-bold text-gray-800">New Reservation</p>
+                                                <p class="text-xs text-gray-500">System update</p>
+                                                <p class="text-[10px] text-gray-400 mt-1">Just now</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start gap-4">
+                                            <div class="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center text-green-500 text-xs shrink-0"><i class="fas fa-user-plus"></i></div>
+                                            <div>
+                                                <p class="text-sm font-bold text-gray-800">New Member</p>
+                                                <p class="text-xs text-gray-500">Sarah J. joined</p>
+                                                <p class="text-[10px] text-gray-400 mt-1">15 mins ago</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start gap-4">
+                                            <div class="w-8 h-8 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-500 text-xs shrink-0"><i class="fas fa-exclamation-triangle"></i></div>
+                                            <div>
+                                                <p class="text-sm font-bold text-gray-800">Stock Warning</p>
+                                                <p class="text-xs text-gray-500">Espresso Beans < 5kg</p>
+                                                <p class="text-[10px] text-gray-400 mt-1">1 hour ago</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+                `;
+            };
+
+            const getReservationsView = () => {
+                const reservations = getReservations();
+                const rows = reservations.map(res => `
+                    <tr class="hover:bg-gray-50 transition border-b border-gray-100 last:border-0">
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">#${res.id.slice(-4)}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-gray-700 whitespace-nowrap">${res.customer}</span>
+                                <span class="text-[10px] text-gray-400 uppercase">${res.guests}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-xs whitespace-nowrap">
+                            <div class="font-bold">${res.location}</div>
+                            <div class="text-gray-500">${res.date} @ ${res.time}</div>
+                        </td>
+                        <td class="px-6 py-4"><span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-[10px] font-bold uppercase">${res.status}</span></td>
+                        <td class="px-6 py-4">
+                            <button class="text-xs font-bold text-red-500 hover:underline" onclick="alert('Functionality to cancel reservation coming soon.')">Cancel</button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                return `
+                    <div class="p-6 md:p-8">
+                        <h2 class="text-2xl font-serif font-bold text-gray-800 mb-6">Reservations</h2>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+                            <table class="w-full text-left text-sm text-gray-600 min-w-[600px]">
+                                <thead class="bg-gray-50 text-[10px] uppercase tracking-widest font-bold text-gray-500">
+                                    <tr>
+                                        <th class="px-6 py-3">ID</th>
+                                        <th class="px-6 py-3">Customer</th>
+                                        <th class="px-6 py-3">Details</th>
+                                        <th class="px-6 py-3">Status</th>
+                                        <th class="px-6 py-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${rows.length ? rows : '<tr><td colspan="5" class="p-6 text-center text-gray-400">No reservations found.</td></tr>'}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            };
+
+            const getInventoryView = () => {
+                const rows = inventory.map(item => `
+                    <tr class="hover:bg-gray-50 transition border-b border-gray-100 last:border-0">
+                        <td class="px-6 py-4 font-bold text-gray-800">${item.item}</td>
+                        <td class="px-6 py-4 text-xs uppercase tracking-wide text-gray-500">${item.category}</td>
+                        <td class="px-6 py-4 font-mono text-xs">${item.stock}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-${item.statusColor}-100 text-${item.statusColor}-700">
+                                ${item.status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-xs font-bold text-komorebi-sage cursor-pointer hover:underline">Restock</td>
+                    </tr>
+                `).join('');
+
+                return `
+                    <div class="p-6 md:p-8">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-serif font-bold text-gray-800">Inventory Management</h2>
+                            <button class="bg-komorebi-charcoal text-white px-4 py-2 rounded text-xs font-bold uppercase hover:bg-komorebi-sage transition">+ Add Item</button>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+                            <table class="w-full text-left text-sm text-gray-600 min-w-[600px]">
+                                <thead class="bg-gray-50 text-[10px] uppercase tracking-widest font-bold text-gray-500">
+                                    <tr>
+                                        <th class="px-6 py-3">Item Name</th>
+                                        <th class="px-6 py-3">Category</th>
+                                        <th class="px-6 py-3">Stock Level</th>
+                                        <th class="px-6 py-3">Status</th>
+                                        <th class="px-6 py-3">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${rows}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            };
+
+            const getCustomersView = () => {
+                const rows = customers.map(c => `
+                    <tr class="hover:bg-gray-50 transition border-b border-gray-100 last:border-0">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
+                                    ${c.name.charAt(0)}
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="font-bold text-gray-700 whitespace-nowrap">${c.name}</span>
+                                    <span class="text-xs text-gray-400">${c.email}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 font-medium">${c.visits}</td>
+                        <td class="px-6 py-4 text-xs text-gray-500 whitespace-nowrap">${c.lastVisit}</td>
+                        <td class="px-6 py-4 font-mono text-xs text-green-600 font-bold">${c.totalSpent}</td>
+                    </tr>
+                `).join('');
+
+                return `
+                    <div class="p-6 md:p-8">
+                        <h2 class="text-2xl font-serif font-bold text-gray-800 mb-6">Customer Database</h2>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+                            <table class="w-full text-left text-sm text-gray-600 min-w-[600px]">
+                                <thead class="bg-gray-50 text-[10px] uppercase tracking-widest font-bold text-gray-500">
+                                    <tr>
+                                        <th class="px-6 py-3">Customer Profile</th>
+                                        <th class="px-6 py-3">Total Orders</th>
+                                        <th class="px-6 py-3">Last Visit</th>
+                                        <th class="px-6 py-3">Lifetime Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${rows}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            };
+
+            // Layout Shell
+            const shellHTML = `
+                <div class="flex h-screen bg-gray-100 font-sans text-komorebi-charcoal overflow-hidden">
+                    <!-- Mobile Sidebar Overlay -->
+                    <div id="admin-sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden" onclick="document.getElementById('admin-sidebar').classList.add('-translate-x-full'); document.getElementById('admin-sidebar-overlay').classList.add('hidden');"></div>
+
+                    <!-- Sidebar -->
+                    <aside id="admin-sidebar" class="w-64 bg-komorebi-charcoal text-white flex flex-col fixed inset-y-0 left-0 z-50 transform -translate-x-full md:translate-x-0 md:relative transition duration-300 ease-in-out shrink-0 h-full">
+                        <div class="h-20 flex items-center justify-center border-b border-gray-700">
+                            <span class="font-serif italic text-2xl tracking-wide">komorebi</span>
+                            <span class="ml-2 text-[10px] uppercase bg-komorebi-sage px-2 py-0.5 rounded text-white">Admin</span>
+                        </div>
+                        <nav class="flex-1 py-6 space-y-1" id="admin-nav">
+                            <button data-view="dashboard" class="w-full flex items-center px-6 py-3 bg-gray-800 border-l-4 border-komorebi-sage text-white group transition nav-btn">
+                                <i class="fas fa-th-large w-6 text-komorebi-sage"></i>
+                                <span class="font-medium text-sm">Dashboard</span>
+                            </button>
+                            <button data-view="reservations" class="w-full flex items-center px-6 py-3 text-gray-400 hover:bg-gray-800 hover:text-white transition group border-l-4 border-transparent nav-btn">
+                                <i class="fas fa-calendar-check w-6 group-hover:text-komorebi-sage transition"></i>
+                                <span class="font-medium text-sm">Reservations</span>
+                            </button>
+                            <button data-view="inventory" class="w-full flex items-center px-6 py-3 text-gray-400 hover:bg-gray-800 hover:text-white transition group border-l-4 border-transparent nav-btn">
+                                <i class="fas fa-box w-6 group-hover:text-komorebi-sage transition"></i>
+                                <span class="font-medium text-sm">Inventory</span>
+                            </button>
+                            <button data-view="customers" class="w-full flex items-center px-6 py-3 text-gray-400 hover:bg-gray-800 hover:text-white transition group border-l-4 border-transparent nav-btn">
+                                <i class="fas fa-users w-6 group-hover:text-komorebi-sage transition"></i>
+                                <span class="font-medium text-sm">Customers</span>
+                            </button>
+                        </nav>
+                        <div class="p-6 border-t border-gray-700">
+                            <button onclick="location.reload()" class="flex items-center text-gray-400 hover:text-white transition text-sm w-full">
+                                <i class="fas fa-sign-out-alt mr-3"></i> Log Out
+                            </button>
+                        </div>
+                    </aside>
+
+                    <!-- Main Content Area -->
+                    <div class="flex-1 flex flex-col overflow-hidden w-full">
+                        <!-- Top Header (Static for all views for now) -->
+                        <header class="h-20 bg-white border-b border-gray-200 flex justify-between items-center px-4 md:px-8 shadow-sm z-10 shrink-0">
+                            <div class="flex items-center gap-4">
+                                <button class="md:hidden text-gray-500 hover:text-gray-800" onclick="document.getElementById('admin-sidebar').classList.remove('-translate-x-full'); document.getElementById('admin-sidebar-overlay').classList.remove('hidden');">
+                                    <i class="fas fa-bars text-xl"></i>
+                                </button>
+                                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest hidden sm:block" id="page-title">Management Console</h2>
+                            </div>
+                            <div class="flex items-center gap-4 md:gap-6">
+                                <div class="relative cursor-pointer">
+                                    <i class="far fa-bell text-gray-400 text-lg hover:text-komorebi-charcoal transition"></i>
+                                    <span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="text-right hidden sm:block">
+                                        <p class="text-sm font-bold">Admin User</p>
+                                        <p class="text-[10px] text-gray-500 uppercase tracking-widest">Store Manager</p>
+                                    </div>
+                                    <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-komorebi-stone overflow-hidden border border-gray-200">
+                                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" alt="Admin" class="w-full h-full object-cover">
+                                    </div>
+                                </div>
+                            </div>
+                        </header>
+
+                        <!-- Dynamic Content -->
+                        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 w-full" id="admin-content">
+                            <!-- Content injected here -->
+                        </main>
+                    </div>
+                </div>
+            `;
+
+            document.body.innerHTML = shellHTML;
+
+            // --- Logic to handle switching views ---
+            const contentArea = document.getElementById('admin-content');
+            const navButtons = document.querySelectorAll('.nav-btn');
+
+            // Default View
+            contentArea.innerHTML = getDashboardView();
+
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Reset Active State
+                    navButtons.forEach(b => {
+                        b.classList.remove('bg-gray-800', 'text-white', 'border-komorebi-sage');
+                        b.classList.add('text-gray-400', 'border-transparent');
+                    });
+                    
+                    // Set Active State
+                    btn.classList.add('bg-gray-800', 'text-white', 'border-komorebi-sage');
+                    btn.classList.remove('text-gray-400', 'border-transparent');
+
+                    const view = btn.getAttribute('data-view');
+                    
+                    if (view === 'dashboard') contentArea.innerHTML = getDashboardView();
+                    if (view === 'reservations') contentArea.innerHTML = getReservationsView();
+                    if (view === 'inventory') contentArea.innerHTML = getInventoryView();
+                    if (view === 'customers') contentArea.innerHTML = getCustomersView();
+                    
+                    // Close sidebar on mobile after selection
+                    if (window.innerWidth < 768) {
+                        document.getElementById('admin-sidebar').classList.add('-translate-x-full');
+                        document.getElementById('admin-sidebar-overlay').classList.add('hidden');
+                    }
+                });
+            });
+        }
+
+        if (toggleAuthBtn) {
+            toggleAuthBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                isLoginView = !isLoginView;
+                
+                if (isLoginView) {
+                    // Switch to Login
+                    loginForm.classList.remove('hidden');
+                    registerForm.classList.add('hidden');
+                    authTitle.textContent = "Member Sign In";
+                    authSubtitle.textContent = "Welcome Back";
+                    toggleAuthBtn.textContent = "Create Account";
+                } else {
+                    // Switch to Register
+                    loginForm.classList.add('hidden');
+                    registerForm.classList.remove('hidden');
+                    authTitle.textContent = "Join the Ritual";
+                    authSubtitle.textContent = "New Member";
+                    toggleAuthBtn.textContent = "Already have an account?";
+                }
+            });
+        }
+
+        if (loginSubmitBtn) {
+            loginSubmitBtn.addEventListener('click', () => {
+                const emailInput = document.getElementById('login-email');
+                const passwordInput = document.getElementById('login-password');
+                
+                // ADMIN BYPASS LOGIC (For Demo Purposes)
+                if (emailInput && passwordInput && emailInput.value === 'admin' && passwordInput.value === '1234') {
+                    // Close modal first
+                    toggleSignin();
+                    // Render new "Window" (Admin Panel)
+                    renderAdminPanel();
+                    return;
+                }
+
+                if (handleAuthValidation('login-email')) {
+                    const btnText = loginSubmitBtn.innerText;
+                    loginSubmitBtn.innerText = "Verifying...";
+                    setTimeout(() => {
+                        alert("Welcome back!");
+                        toggleSignin();
+                        loginSubmitBtn.innerText = btnText;
+                    }, 1000);
+                }
+            });
+        }
+
+        // --- Reservation Submission Logic ---
+        let selectedTime = "9:00 AM"; // Default
+        const confirmBookingBtn = document.getElementById('confirm-booking-btn');
+        const timeSlots = document.querySelectorAll('.time-slot');
+
+        // Time Slot Selection logic (Merged)
+        if (timeSlots) {
+            timeSlots.forEach(slot => {
+                slot.addEventListener('click', function() {
+                    if(this.classList.contains('cursor-not-allowed')) return;
+
+                    // Update State
+                    selectedTime = this.getAttribute('data-time');
+
+                    // Update UI
+                    timeSlots.forEach(s => {
+                        if(!s.classList.contains('cursor-not-allowed')) {
+                            s.classList.remove('bg-komorebi-charcoal', 'text-white', 'border-komorebi-charcoal', 'active-time');
+                            s.classList.add('border-komorebi-stone', 'text-komorebi-charcoal');
+                        }
+                    });
+                    
+                    this.classList.remove('border-komorebi-stone', 'text-komorebi-charcoal');
+                    this.classList.add('bg-komorebi-charcoal', 'text-white', 'border-komorebi-charcoal', 'active-time');
+                });
+            });
+        }
+
+        if (confirmBookingBtn) {
+            confirmBookingBtn.addEventListener('click', () => {
+                const location = document.getElementById('res-location').value;
+                const date = document.getElementById('res-date').value;
+                const guests = document.getElementById('res-guests').value;
+
+                if (!date) {
+                    alert("Please select a date for your reservation.");
+                    return;
+                }
+
+                const btnText = confirmBookingBtn.innerText;
+                confirmBookingBtn.innerText = "Confirming...";
+
+                // Simulate API delay
+                setTimeout(() => {
+                    // Create reservation object
+                    const newReservation = {
+                        id: 'RES-' + Date.now(),
+                        customer: 'Guest User', // Static for demo, could take from auth
+                        location: location,
+                        date: date,
+                        time: selectedTime,
+                        guests: guests,
+                        status: 'Pending',
+                        timestamp: new Date().toISOString()
+                    };
+
+                    // Save to LocalStorage
+                    const existingReservations = JSON.parse(localStorage.getItem('komorebi_reservations') || '[]');
+                    existingReservations.unshift(newReservation); // Add to top
+                    localStorage.setItem('komorebi_reservations', JSON.stringify(existingReservations));
+
+                    alert(`Reservation Confirmed!\n\n${location}\n${date} at ${selectedTime}\n${guests}`);
+                    
+                    toggleModal(); // Close modal
+                    confirmBookingBtn.innerText = btnText;
+                }, 800);
+            });
+        }
+
+        if (registerSubmitBtn) {
+            registerSubmitBtn.addEventListener('click', () => {
+                if (handleAuthValidation('register-email')) {
+                    // Simulate account creation
+                    const btnText = registerSubmitBtn.innerText;
+                    registerSubmitBtn.innerText = "Creating...";
+                    setTimeout(() => {
+                        alert("Welcome to Komorebi! Your account has been created.");
+                        toggleSignin(); // Close modal
+                        registerSubmitBtn.innerText = btnText;
+                    }, 1000);
+                }
+            });
+        }
+
+        // --- Audio Player Logic ---
+        const audioCard = document.getElementById('audio-card');
+        const playBtn = document.getElementById('play-btn');
+        const playIcon = document.getElementById('play-icon');
+        const audioTrack = document.getElementById('audio-track');
+        const volumeSlider = document.getElementById('volume-slider');
+        const volumeContainer = document.getElementById('volume-container');
+        const visualizerBars = document.querySelectorAll('#visualizer .bar');
+
+        let isAudioOperationInProgress = false;
+        let audioContext, analyser, sourceNode;
+        let animationId;
+
+        // Initialize Web Audio API
+        function initAudio() {
+            if (!audioContext) {
+                // Create context
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioContext = new AudioContext();
+                
+                // Create analyser
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 64; // Small size for 5 bars
+                
+                // Connect source
+                sourceNode = audioContext.createMediaElementSource(audioTrack);
+                sourceNode.connect(analyser);
+                analyser.connect(audioContext.destination);
+            } else if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function animateVisualizer() {
+            if (!analyser) return;
+            
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            
+            analyser.getByteFrequencyData(dataArray);
+            
+            // Map specific frequency bins to our 5 bars (Bass to Treble)
+            // Bins roughly: 0-3 (Bass), 4-8 (LowMid), 9-15 (Mid), 16-22 (HighMid), 23+ (Treble)
+            
+            if (visualizerBars.length >= 5) {
+                // Bar 1: Bass
+                const bassAvg = (dataArray[1] + dataArray[2] + dataArray[3]) / 3;
+                visualizerBars[0].style.height = Math.max(10, (bassAvg / 255) * 100) + '%';
+                
+                // Bar 2: Low Mids
+                const lowMidAvg = (dataArray[4] + dataArray[5] + dataArray[6]) / 3;
+                visualizerBars[1].style.height = Math.max(10, (lowMidAvg / 255) * 100) + '%';
+                
+                // Bar 3: Mids
+                const midAvg = (dataArray[8] + dataArray[9] + dataArray[10]) / 3;
+                visualizerBars[2].style.height = Math.max(10, (midAvg / 255) * 100) + '%';
+                
+                // Bar 4: High Mids
+                const highMidAvg = (dataArray[12] + dataArray[14]) / 2;
+                visualizerBars[3].style.height = Math.max(10, (highMidAvg / 255) * 100) + '%';
+                
+                // Bar 5: Treble
+                const trebleAvg = (dataArray[16] + dataArray[20]) / 2;
+                visualizerBars[4].style.height = Math.max(10, (trebleAvg / 255) * 100) + '%';
+            }
+            
+            if (!audioTrack.paused) {
+                animationId = requestAnimationFrame(animateVisualizer);
+            }
+        }
+
+        if (playBtn && audioTrack) {
+            audioTrack.volume = 0.5; // Set volume to 50%
+            
+            // Volume Slider Logic
+            if (volumeSlider) {
+                volumeSlider.addEventListener('input', (e) => {
+                    audioTrack.volume = e.target.value;
+                });
+                // Prevent click on slider from toggling play
+                volumeSlider.addEventListener('click', (e) => e.stopPropagation());
+            }
+            
+            playBtn.addEventListener('click', async (e) => {
+                e.stopPropagation(); // explicit stop propagation
+                
+                // Prevent rapid clicking causing race conditions
+                if (isAudioOperationInProgress) return;
+                isAudioOperationInProgress = true;
+
+                try {
+                    // Initialize Audio Context on user gesture (first click)
+                    try {
+                        initAudio();
+                    } catch (e) {
+                        console.warn("Web Audio API failed, fallback to CSS animation", e);
+                        audioCard.classList.add('fallback-anim');
+                    }
+
+                    if (audioTrack.paused) {
+                        // Play logic
+                        await audioTrack.play();
+                        audioCard.classList.add('playing');
+                        playIcon.classList.remove('fa-play', 'ml-1');
+                        playIcon.classList.add('fa-pause');
+                        
+                        // Start visualizer loop if context exists
+                        if(audioContext) {
+                            cancelAnimationFrame(animationId);
+                            animateVisualizer();
+                        }
+
+                        // Keep volume visible when playing
+                        if(volumeContainer) {
+                            volumeContainer.classList.remove('opacity-0');
+                            volumeContainer.classList.remove('-translate-y-4');
+                            volumeContainer.classList.add('translate-y-0');
+                        } 
+                    } else {
+                        // Pause logic
+                        audioTrack.pause();
+                        audioCard.classList.remove('playing');
+                        playIcon.classList.add('fa-play', 'ml-1');
+                        playIcon.classList.remove('fa-pause');
+                        
+                        cancelAnimationFrame(animationId);
+
+                        // Revert volume visibility to hover-only
+                        if(volumeContainer) {
+                            volumeContainer.classList.add('opacity-0');
+                            volumeContainer.classList.add('-translate-y-4');
+                            volumeContainer.classList.remove('translate-y-0');
+                        }
+                    }
+                } catch (error) {
+                    console.error("Playback action failed:", error);
+                    // Reset UI if play failed
+                    if (audioTrack.paused) {
+                        audioCard.classList.remove('playing');
+                        playIcon.classList.add('fa-play', 'ml-1');
+                        playIcon.classList.remove('fa-pause');
+                    }
+                } finally {
+                    isAudioOperationInProgress = false;
+                }
+            });
+        }
+
+        // --- Scroll Reveal Logic ---
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal').forEach(el => {
+            observer.observe(el);
+        });
+
+        // --- Navbar Scroll State ---
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('shadow-sm');
+            } else {
+                navbar.classList.remove('shadow-sm');
+            }
+        });
+    </script>
+</body>
+</html>
