@@ -1,0 +1,635 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Menu, X, ChevronRight, Star, MapPin, 
+  Calendar, Clock, Users, ArrowRight, 
+  Instagram, Facebook, Twitter, Wind, 
+  Utensils, Droplet, Flame 
+} from 'lucide-react';
+
+/**
+ * SAIGON LOTUS - "Silent Luxury" Vietnamese Dining
+ * * Design Philosophy:
+ * - Restrained elegance (Rice Paper White & Charcoal)
+ * - Kinetic Calm (Slow transitions, organic movement)
+ * - Sensory Storytelling
+ */
+
+// --- DATA & ASSETS ---
+
+const COLORS = {
+  rice: '#F8F5F0',
+  charcoal: '#1A1A1A',
+  gold: '#C9A35E',
+  red: '#D44D2C',
+  green: '#8A9B6E',
+  overlay: 'rgba(26, 26, 26, 0.4)'
+};
+
+const MENU_ITEMS = [
+  {
+    id: 1,
+    category: 'starters',
+    name: 'Goi Cuon Truffle',
+    price: '280 CZK',
+    desc: 'Summer rolls with tiger prawn, truffle oil, and micro-herbs.',
+    story: 'Our wrapper rice paper is hand-dried in the Mekong Delta. The truffle infusion bridges French culinary history with Vietnamese freshness.',
+    pairing: 'Riesling Kabinett 2021',
+    pairingColor: 'rgba(201, 163, 94, 0.2)', // Gold aura
+    dietary: ['GF']
+  },
+  {
+    id: 2,
+    category: 'starters',
+    name: 'Banh Xeo Wagyu',
+    price: '350 CZK',
+    desc: 'Crispy sizzling crepe filled with Wagyu beef slices and bean sprouts.',
+    story: 'Inspired by the rainy season sounds of sizzling batter. We use turmeric from the Central Highlands for the signature golden hue.',
+    pairing: 'Jasmine IPA',
+    pairingColor: 'rgba(138, 155, 110, 0.2)', // Green aura
+    dietary: []
+  },
+  {
+    id: 3,
+    category: 'mains',
+    name: 'Pho Bat Da (Stone Bowl)',
+    price: '450 CZK',
+    desc: 'Deconstructed Pho served in a hot stone bowl to maintain 98°C.',
+    story: 'A theatrical experience. The broth is simmered for 24 hours with charred ginger and star anise. You cook the wagyu slices at the table.',
+    pairing: 'Pinot Noir 2019',
+    pairingColor: 'rgba(212, 77, 44, 0.15)', // Red aura
+    dietary: ['GF']
+  },
+  {
+    id: 4,
+    category: 'mains',
+    name: 'Cha Ca La Vong',
+    price: '420 CZK',
+    desc: 'Turmeric grilled fish with dill and shrimp paste.',
+    story: 'A dish so iconic it has a street named after it in Hanoi. We use local Czech sturgeon for sustainability, marinated in galangal.',
+    pairing: 'Lotus Tea',
+    pairingColor: 'rgba(201, 163, 94, 0.2)',
+    dietary: ['GF']
+  },
+  {
+    id: 5,
+    category: 'dessert',
+    name: 'Che Sen Texture',
+    price: '190 CZK',
+    desc: 'Lotus seeds, longan, and jasmine jelly textures.',
+    story: 'A study in white. The lotus seed represents purity in Buddhism. We present it three ways: candied, stewed, and as a delicate mousse.',
+    pairing: 'Egg Coffee',
+    pairingColor: 'rgba(26, 26, 26, 0.1)',
+    dietary: ['V', 'GF']
+  }
+];
+
+const REVIEWS = [
+  { id: 1, text: "A silent symphony of flavors.", author: "Michelin Guide 2025" },
+  { id: 2, text: "Vietnam meets refined European minimalism.", author: "Prague Food Daily" },
+  { id: 3, text: "The stone bowl Pho is a religious experience.", author: "Taste Atlas" }
+];
+
+// --- UTILITY COMPONENTS ---
+
+const FadeIn = ({ children, delay = 0, className = "" }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const domRef = useRef();
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => setIsVisible(entry.isIntersecting));
+    });
+    if (domRef.current) observer.observe(domRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={domRef}
+      className={`transition-all duration-1000 ease-out transform ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+      } ${className}`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  );
+};
+
+// --- MAIN APP COMPONENT ---
+
+export default function App() {
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('mains');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [expandedDish, setExpandedDish] = useState(null);
+  const [lang, setLang] = useState('EN');
+  const [scrolled, setScrolled] = useState(false);
+
+  // Custom Cursor Logic
+  const cursorRef = useRef(null);
+  const cursorDotRef = useRef(null);
+
+  useEffect(() => {
+    const moveCursor = (e) => {
+      if (cursorRef.current && cursorDotRef.current) {
+        cursorRef.current.style.left = e.clientX + 'px';
+        cursorRef.current.style.top = e.clientY + 'px';
+        cursorDotRef.current.style.left = e.clientX + 'px';
+        cursorDotRef.current.style.top = e.clientY + 'px';
+      }
+    };
+    window.addEventListener('mousemove', moveCursor);
+    return () => window.removeEventListener('mousemove', moveCursor);
+  }, []);
+
+  // Scroll Listener
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Loading Simulation
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#F8F5F0]">
+        <style>{`
+          @keyframes riceFall {
+            0% { transform: translateY(-20px); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(20px); opacity: 0; }
+          }
+          .rice-grain {
+            width: 4px; height: 10px; background: #C9A35E; border-radius: 50%;
+            animation: riceFall 1.5s infinite ease-in-out;
+            margin: 0 4px;
+          }
+        `}</style>
+        <div className="flex mb-4">
+          <div className="rice-grain" style={{ animationDelay: '0s' }}></div>
+          <div className="rice-grain" style={{ animationDelay: '0.2s' }}></div>
+          <div className="rice-grain" style={{ animationDelay: '0.4s' }}></div>
+        </div>
+        <h1 className="text-[#1A1A1A] text-xl font-light tracking-[0.3em] animate-pulse">SAIGON LOTUS</h1>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-[#F8F5F0] min-h-screen font-sans text-[#1A1A1A] overflow-x-hidden selection:bg-[#C9A35E] selection:text-white cursor-none">
+      
+      {/* GLOBAL STYLES & FONTS */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;300;400;500&family=Saira+Condensed:wght@300;400;500;600&display=swap');
+        
+        :root {
+          --color-gold: #C9A35E;
+        }
+        
+        body {
+          font-family: 'IBM Plex Sans', sans-serif;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+          font-family: 'Saira Condensed', sans-serif;
+        }
+
+        .custom-cursor {
+          position: fixed;
+          pointer-events: none;
+          z-index: 9999;
+          transform: translate(-50%, -50%);
+          transition: width 0.3s, height 0.3s;
+        }
+
+        .chopsticks {
+          width: 40px;
+          height: 40px;
+          border: 1px solid #1A1A1A;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .chopsticks::before, .chopsticks::after {
+          content: '';
+          position: absolute;
+          width: 2px;
+          height: 20px;
+          background: #1A1A1A;
+          transition: transform 0.2s;
+        }
+
+        .chopsticks::before { transform: rotate(-15deg) translateY(-2px); }
+        .chopsticks::after { transform: rotate(15deg) translateY(-2px); }
+
+        .cursor-dot {
+          width: 6px;
+          height: 6px;
+          background: #C9A35E;
+          border-radius: 50%;
+          position: fixed;
+          pointer-events: none;
+          z-index: 10000;
+          transform: translate(-50%, -50%);
+        }
+
+        /* Hide default cursor on interactive elements to force custom cursor usage */
+        a, button, input, select, textarea {
+          cursor: none;
+        }
+        
+        a:hover ~ .custom-cursor .chopsticks,
+        button:hover ~ .custom-cursor .chopsticks {
+          width: 50px;
+          height: 50px;
+          border-color: #C9A35E;
+        }
+        
+        a:hover ~ .custom-cursor .chopsticks::before,
+        button:hover ~ .custom-cursor .chopsticks::before {
+          transform: rotate(-25deg) translateY(0px);
+          background: #C9A35E;
+        }
+
+        a:hover ~ .custom-cursor .chopsticks::after,
+        button:hover ~ .custom-cursor .chopsticks::after {
+          transform: rotate(25deg) translateY(0px);
+          background: #C9A35E;
+        }
+
+        .silk-thread {
+          position: absolute;
+          left: 50%;
+          width: 1px;
+          background: linear-gradient(to bottom, transparent, #C9A35E, transparent);
+          height: 100%;
+          opacity: 0.5;
+        }
+      `}</style>
+
+      {/* CUSTOM CURSOR */}
+      <div ref={cursorRef} className="custom-cursor hidden md:block">
+        <div className="chopsticks"></div>
+      </div>
+      <div ref={cursorDotRef} className="cursor-dot hidden md:block"></div>
+
+      {/* NAVIGATION */}
+      <nav className={`fixed w-full z-40 transition-all duration-500 ${scrolled ? 'bg-[#F8F5F0]/95 backdrop-blur-md py-4 shadow-sm' : 'bg-transparent py-8'}`}>
+        <div className="container mx-auto px-6 flex justify-between items-center">
+          <div className="flex items-center gap-2 group cursor-pointer">
+            <div className={`w-8 h-8 rounded-full border border-current flex items-center justify-center transition-colors duration-500 ${scrolled ? 'text-[#1A1A1A]' : 'text-white'}`}>
+              <span className="text-xs font-serif">S</span>
+            </div>
+            <span className={`text-xl tracking-widest font-bold uppercase transition-colors duration-500 ${scrolled ? 'text-[#1A1A1A]' : 'text-white'}`}>
+              Saigon Lotus
+            </span>
+          </div>
+
+          <div className="hidden md:flex items-center gap-12">
+            {['Philosophy', 'Menu', 'Story', 'Reservations'].map((item) => (
+              <a 
+                key={item} 
+                href={`#${item.toLowerCase()}`}
+                className={`text-sm tracking-[0.2em] uppercase hover:text-[#C9A35E] transition-colors duration-300 ${scrolled ? 'text-[#1A1A1A]' : 'text-white/90'}`}
+              >
+                {item}
+              </a>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={() => setLang(lang === 'EN' ? 'CZ' : 'EN')}
+              className={`text-xs font-bold tracking-widest ${scrolled ? 'text-[#1A1A1A]' : 'text-white'}`}
+            >
+              {lang}
+            </button>
+            <button 
+              onClick={() => setMenuOpen(!menuOpen)}
+              className={`md:hidden ${scrolled ? 'text-[#1A1A1A]' : 'text-white'}`}
+            >
+              {menuOpen ? <X /> : <Menu />}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* MOBILE MENU OVERLAY */}
+      <div className={`fixed inset-0 bg-[#1A1A1A] z-30 transition-transform duration-500 flex flex-col items-center justify-center gap-8 ${menuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        {['Philosophy', 'Menu', 'Story', 'Reservations'].map((item) => (
+          <a 
+            key={item}
+            href={`#${item.toLowerCase()}`}
+            onClick={() => setMenuOpen(false)}
+            className="text-white text-3xl font-light tracking-widest hover:text-[#C9A35E]"
+          >
+            {item}
+          </a>
+        ))}
+      </div>
+
+      {/* HERO SECTION */}
+      <header className="relative h-screen w-full overflow-hidden flex items-center justify-center">
+        {/* Background simulates video loop */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1552590635-27c2c2128abf?auto=format&fit=crop&q=80" 
+            alt="Chef preparing herbs" 
+            className="w-full h-full object-cover opacity-90 scale-105 animate-[pulse_10s_ease-in-out_infinite]"
+          />
+          <div className="absolute inset-0 bg-black/40"></div>
+        </div>
+
+        <div className="relative z-10 text-center text-white px-4">
+          <FadeIn delay={200}>
+            <p className="text-sm md:text-base tracking-[0.4em] mb-4 text-[#C9A35E]">PRAGUE, CZECHIA</p>
+          </FadeIn>
+          <FadeIn delay={500}>
+            <h1 className="text-6xl md:text-9xl font-light mb-6 tracking-tighter leading-none">
+              SILENT <br /> LUXURY
+            </h1>
+          </FadeIn>
+          <FadeIn delay={800}>
+            <div className="w-[1px] h-24 bg-white/30 mx-auto my-8"></div>
+            <p className="font-light italic text-lg text-white/80">"The space between ingredients"</p>
+          </FadeIn>
+        </div>
+
+        <div className="absolute bottom-12 left-0 w-full flex justify-center z-10 animate-bounce">
+          <ArrowRight className="text-white rotate-90 opacity-50" />
+        </div>
+      </header>
+
+      {/* PHILOSOPHY SECTION */}
+      <section id="philosophy" className="py-24 md:py-32 px-6 container mx-auto bg-[#F8F5F0]">
+        <div className="grid md:grid-cols-3 gap-16 text-center">
+          {[
+            { 
+              icon: <Utensils className="w-8 h-8" />, 
+              title: "INGREDIENTS", 
+              text: "Sourced from small-hold farmers in the Mekong and organic growers in Moravia." 
+            },
+            { 
+              icon: <Flame className="w-8 h-8" />, 
+              title: "CRAFT", 
+              text: "Slow cooking techniques meeting modern precision. 24-hour broths, zero shortcuts." 
+            },
+            { 
+              icon: <Droplet className="w-8 h-8" />, 
+              title: "BALANCE", 
+              text: "The interplay of mặn (salty), ngọt (sweet), chua (sour), cay (spicy), and đắng (bitter)." 
+            }
+          ].map((item, idx) => (
+            <FadeIn key={idx} delay={idx * 200}>
+              <div className="flex flex-col items-center group">
+                <div className="mb-6 p-6 rounded-full border border-[#1A1A1A]/10 group-hover:border-[#C9A35E] text-[#1A1A1A] group-hover:text-[#C9A35E] transition-all duration-500">
+                  {item.icon}
+                </div>
+                <h3 className="text-2xl mb-4 tracking-widest">{item.title}</h3>
+                <p className="text-gray-600 font-light leading-relaxed max-w-xs mx-auto">{item.text}</p>
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+      </section>
+
+      {/* MENU JOURNEY SECTION */}
+      <section id="menu" className="py-24 bg-[#1A1A1A] text-[#F8F5F0] relative overflow-hidden">
+        {/* Texture Overlay */}
+        <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'6\' height=\'6\' viewBox=\'0 0 6 6\' xmlns=\'0 0 2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\' fill-rule=\'evenodd\'%3E%3Cpath d=\'M5 0h1L0 6V5zM6 5v1H5z\'/%3E%3C/g%3E%3C/svg%3E")' }}></div>
+        
+        <div className="container mx-auto px-6 relative z-10">
+          <FadeIn>
+            <div className="text-center mb-16">
+              <span className="text-[#C9A35E] tracking-[0.3em] text-sm uppercase">The Journey</span>
+              <h2 className="text-5xl md:text-6xl mt-4 mb-8">SEASONAL TASTING</h2>
+              
+              <div className="flex justify-center gap-8 mb-12">
+                {['starters', 'mains', 'dessert'].map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveTab(cat)}
+                    className={`pb-2 text-sm tracking-[0.2em] uppercase transition-all duration-300 border-b ${
+                      activeTab === cat ? 'text-white border-[#C9A35E]' : 'text-gray-500 border-transparent hover:text-white'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </FadeIn>
+
+          <div className="grid md:grid-cols-2 gap-x-12 gap-y-24 max-w-5xl mx-auto">
+            {MENU_ITEMS.filter(item => item.category === activeTab).map((item) => (
+              <FadeIn key={item.id} className="w-full">
+                <div 
+                  className="group cursor-pointer relative"
+                  onClick={() => setExpandedDish(expandedDish === item.id ? null : item.id)}
+                  onMouseEnter={(e) => {
+                    // Slight hover effect logic handled by CSS group
+                  }}
+                >
+                  {/* Aura Effect for Pairing */}
+                  <div 
+                    className="absolute -inset-8 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+                    style={{ backgroundColor: item.pairingColor }}
+                  ></div>
+
+                  <div className="relative z-10 flex justify-between items-baseline border-b border-gray-800 pb-4 mb-4 group-hover:border-[#C9A35E] transition-colors duration-500">
+                    <h3 className="text-3xl font-light group-hover:pl-4 transition-all duration-500">{item.name}</h3>
+                    <span className="text-[#C9A35E] font-mono text-lg">{item.price}</span>
+                  </div>
+
+                  <p className="text-gray-400 font-light mb-4">{item.desc}</p>
+
+                  <div className={`overflow-hidden transition-all duration-700 ease-in-out ${expandedDish === item.id ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+                    <div className="pt-2 pb-6 pl-4 border-l border-[#C9A35E]">
+                      <p className="text-sm italic text-gray-300 mb-3">"{item.story}"</p>
+                      
+                      <div className="flex items-center gap-4 text-xs tracking-widest uppercase text-[#C9A35E] mt-4">
+                        <span className="flex items-center gap-2">
+                          <Droplet size={14} /> Pairing: {item.pairing}
+                        </span>
+                        {item.dietary.length > 0 && (
+                          <span className="flex gap-2">
+                            {item.dietary.map(d => <span key={d} className="border border-[#C9A35E] px-1 rounded">{d}</span>)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* STORY SECTION */}
+      <section id="story" className="py-32 bg-[#F8F5F0] relative overflow-hidden">
+        <div className="container mx-auto px-6 relative">
+          {/* Silk Thread Visual */}
+          <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-[1px] bg-[#C9A35E]/30 hidden md:block"></div>
+
+          <div className="text-center mb-24">
+            <h2 className="text-5xl text-[#1A1A1A]">FROM HANOI TO PRAGUE</h2>
+          </div>
+
+          <div className="relative space-y-24">
+            {[
+              { year: '1985', title: 'The Old Quarter', desc: 'Our Chef Bao learns the art of broth from his grandmother in a 4-seat stall in Hanoi.' },
+              { year: '2010', title: 'Arrival', desc: 'Bringing the authentic flavors to Europe, realizing that local ingredients can tell Vietnamese stories.' },
+              { year: '2025', title: 'Saigon Lotus', desc: 'A sanctuary of taste. Bridging two cultures through the silent language of food.' }
+            ].map((milestone, idx) => (
+              <FadeIn key={idx}>
+                <div className={`flex flex-col md:flex-row items-center gap-8 ${idx % 2 === 0 ? 'md:flex-row-reverse' : ''}`}>
+                  <div className="md:w-1/2 flex justify-center md:justify-end px-12 text-center md:text-right">
+                     <div className={`${idx % 2 === 0 ? 'md:text-left md:justify-start' : 'md:text-right'}`}>
+                        <span className="text-6xl font-bold text-[#F8F5F0] text-shadow-stroke stroke-[#C9A35E]" style={{WebkitTextStroke: '1px #C9A35E', color: 'transparent'}}>{milestone.year}</span>
+                        <h3 className="text-2xl mt-2 mb-2">{milestone.title}</h3>
+                        <p className="text-gray-600 font-light">{milestone.desc}</p>
+                     </div>
+                  </div>
+                  {/* Knot on the thread */}
+                  <div className="w-4 h-4 rounded-full bg-[#C9A35E] absolute left-1/2 -translate-x-1/2 hidden md:block ring-4 ring-[#F8F5F0]"></div>
+                  <div className="md:w-1/2"></div>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* GALLERY / MOMENTS */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[200px]">
+              <div className="col-span-2 row-span-2 relative group overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1511690656952-34342d5c2899?auto=format&fit=crop&q=80" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Interior" />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center text-white">
+                  <p className="font-light tracking-widest">INTERIOR</p>
+                </div>
+              </div>
+              <div className="col-span-1 row-span-1 relative group overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&q=80" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Food" />
+              </div>
+              <div className="col-span-1 row-span-2 relative group overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&q=80" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Detail" />
+              </div>
+              <div className="col-span-1 row-span-1 relative group overflow-hidden">
+                 <img src="https://images.unsplash.com/photo-1626804475297-411d863134bb?auto=format&fit=crop&q=80" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Tea" />
+              </div>
+           </div>
+        </div>
+      </section>
+
+      {/* RESERVATIONS SECTION */}
+      <section id="reservations" className="py-32 bg-[#1A1A1A] text-[#F8F5F0]">
+        <div className="container mx-auto px-6 max-w-4xl">
+          <FadeIn>
+            <div className="text-center mb-16">
+              <h2 className="text-5xl mb-4">SECURE YOUR SEAT</h2>
+              <p className="font-light text-gray-400">Experience the convergence of taste and time.</p>
+            </div>
+
+            <form className="bg-[#242424] p-8 md:p-12 rounded-sm shadow-2xl border border-gray-800" onSubmit={(e) => e.preventDefault()}>
+              <div className="grid md:grid-cols-2 gap-8 mb-8">
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-[#C9A35E] mb-2">Date</label>
+                  <div className="flex items-center border-b border-gray-700 pb-2 hover:border-[#C9A35E] transition-colors">
+                    <Calendar className="w-5 h-5 mr-3 text-gray-500" />
+                    <input type="date" className="bg-transparent w-full focus:outline-none text-white font-light" />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-[#C9A35E] mb-2">Guests</label>
+                  <div className="flex items-center border-b border-gray-700 pb-2 hover:border-[#C9A35E] transition-colors">
+                    <Users className="w-5 h-5 mr-3 text-gray-500" />
+                    <select className="bg-transparent w-full focus:outline-none text-white font-light appearance-none">
+                      {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n} Guests</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-[#C9A35E] mb-2">Time</label>
+                  <div className="flex items-center border-b border-gray-700 pb-2 hover:border-[#C9A35E] transition-colors">
+                    <Clock className="w-5 h-5 mr-3 text-gray-500" />
+                    <select className="bg-transparent w-full focus:outline-none text-white font-light appearance-none">
+                      <option>18:00 - Sunset Service</option>
+                      <option>20:00 - Evening Service</option>
+                      <option>21:30 - Late Night</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-[#C9A35E] mb-2">
+                    Scent Preference <span className="text-[10px] normal-case opacity-50">(For your table towel)</span>
+                  </label>
+                  <div className="flex items-center border-b border-gray-700 pb-2 hover:border-[#C9A35E] transition-colors">
+                    <Wind className="w-5 h-5 mr-3 text-gray-500" />
+                    <select className="bg-transparent w-full focus:outline-none text-white font-light appearance-none">
+                      <option>Lemongrass & Lime (Energizing)</option>
+                      <option>Charred Ginger (Warm)</option>
+                      <option>Jasmine & Green Tea (Calm)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end mt-12">
+                <button className="group relative px-8 py-4 bg-transparent border border-[#C9A35E] text-[#C9A35E] hover:bg-[#C9A35E] hover:text-[#1A1A1A] transition-all duration-300 overflow-hidden">
+                   <span className="relative z-10 flex items-center gap-4 tracking-widest uppercase text-sm">
+                     Confirm Booking <ChevronRight size={16} />
+                   </span>
+                </button>
+              </div>
+            </form>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="bg-[#151515] text-gray-500 py-24 px-6 border-t border-gray-800">
+        <div className="container mx-auto grid md:grid-cols-4 gap-12 text-sm font-light">
+          <div className="col-span-1">
+             <div className="w-12 h-12 rounded-full border border-gray-700 flex items-center justify-center text-gray-300 mb-6 font-serif text-xl">S</div>
+             <p className="mb-4">Prague 1, Staré Město<br/>Dlouhá 727/39</p>
+             <a href="mailto:hello@saigonlotus.cz" className="hover:text-[#C9A35E] transition-colors">hello@saigonlotus.cz</a>
+          </div>
+
+          <div>
+            <h4 className="text-white uppercase tracking-widest mb-6">Hours</h4>
+            <p className="mb-2">Tue - Sun</p>
+            <p>17:00 — 23:00</p>
+          </div>
+
+          <div>
+            <h4 className="text-white uppercase tracking-widest mb-6">Social</h4>
+            <div className="flex gap-6">
+              <a href="#" className="hover:text-[#C9A35E] transition-colors"><Instagram size={20} /></a>
+              <a href="#" className="hover:text-[#C9A35E] transition-colors"><Facebook size={20} /></a>
+              <a href="#" className="hover:text-[#C9A35E] transition-colors"><Twitter size={20} /></a>
+            </div>
+          </div>
+
+          <div className="text-right flex flex-col justify-between">
+            <p className="text-xs tracking-widest opacity-50">© 2025 SAIGON LOTUS</p>
+            <p className="text-xs opacity-30 mt-4">DESIGNED BY SILENT LUXURY AI</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
