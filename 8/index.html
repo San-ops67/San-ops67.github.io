@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Boba Pop | Make Your Own</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chewy&family=Fredoka:wght@300;400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --color-peach: #FFDAB9;
+            --color-mint: #98FF98;
+            --color-lavender: #E6E6FA;
+            --color-pop-pink: #FF69B4;
+        }
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            overflow-x: hidden; 
+            overflow-y: auto;   
+            background: linear-gradient(135deg, #FFD1DC 0%, #E0F4FF 50%, #E6E6FA 100%);
+            background-attachment: fixed; 
+            /* Prevent bounce scrolling on mobile iOS for app-like feel */
+            overscroll-behavior-y: none;
+        }
+
+        /* Prevent scrolling when builder is open */
+        body.builder-active {
+            overflow: hidden;
+        }
+
+        /* Custom Cursor */
+        .custom-cursor {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="black"><circle cx="12" cy="12" r="10" opacity="0.5"/></svg>'), auto;
+        }
+
+        /* Floating Animation */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        .animate-float-delay {
+            animation: float 7s ease-in-out infinite;
+            animation-delay: 1s;
+        }
+
+        /* Bouncy Hover Effects */
+        .hover-bounce {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .hover-bounce:hover {
+            transform: scale(1.05) translateY(-5px);
+        }
+
+        /* Button click */
+        .btn-bouncy {
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .btn-bouncy:active {
+            transform: scale(0.9);
+        }
+        .btn-bouncy:hover {
+            transform: scale(1.05);
+        }
+
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 40px -10px rgba(255, 105, 180, 0.15);
+        }
+
+        /* Builder Overlay Specifics */
+        #builder-app {
+            transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        #builder-app.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        /* Marquee */
+        .marquee-container {
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .marquee-content {
+            display: inline-block;
+            animation: marquee 30s linear infinite;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Dragging Styles */
+        .draggable-source {
+            cursor: grab;
+        }
+        .draggable-source:active {
+            cursor: grabbing;
+        }
+
+        /* 3D Canvas Background */
+        #canvas-container {
+            position: fixed; 
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0; 
+            pointer-events: none; /* Disabled by default */
+            opacity: 0; /* Hidden by default */
+            transition: opacity 0.6s ease-in-out;
+        }
+
+        #canvas-container.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Section layout */
+        .section-container {
+            position: relative;
+            z-index: 10;
+            transition: opacity 0.3s;
+        }
+        .section-container.blurred {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .hero-section {
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* 3D Text Effect for Titles */
+        .text-pop {
+            text-shadow: 2px 2px 0px #fff, 4px 4px 0px rgba(0,0,0,0.1);
+        }
+
+        /* Loader */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: #FFF0F5;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Chewy', cursive;
+            font-size: 3rem;
+            color: #FF69B4;
+            transition: opacity 0.5s;
+        }
+
+        /* Cart Drawer Animation */
+        #cart-panel {
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #cart-overlay.active #cart-panel {
+            transform: translateX(0);
+        }
+
+        /* Background Bubbles */
+        .bg-bubbles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .bubble {
+            position: absolute;
+            bottom: -100px;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.1));
+            border-radius: 50%;
+            animation: rise 15s infinite ease-in;
+        }
+        @keyframes rise {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            50% { opacity: 0.6; }
+            100% { transform: translateY(-120vh) scale(1.5); opacity: 0; }
+        }
+
+        /* Scroll Reveal */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Custom Scrollbar for Desktop Panels */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Hide scrollbar completely on mobile for swiping elements */
+        .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="selection:bg-pink-200 selection:text-pink-600">
+
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="animate-bounce">Brewing Fun...</div>
+    </div>
+
+    <!-- 3D Scene Container (Hidden by default) -->
+    <div id="canvas-container"></div>
+
+    <!-- CSS Background Bubbles (Visible on main page) -->
+    <div class="bg-bubbles">
+        <div class="bubble w-20 h-20 left-[10%]" style="animation-delay: 0s;"></div>
+        <div class="bubble w-12 h-12 left-[20%]" style="animation-delay: 2s;"></div>
+        <div class="bubble w-24 h-24 left-[35%]" style="animation-delay: 4s;"></div>
+        <div class="bubble w-16 h-16 left-[50%]" style="animation-delay: 1s;"></div>
+        <div class="bubble w-20 h-20 left-[65%]" style="animation-delay: 6s;"></div>
+        <div class="bubble w-10 h-10 left-[80%]" style="animation-delay: 3s;"></div>
+        <div class="bubble w-14 h-14 left-[90%]" style="animation-delay: 5s;"></div>
+    </div>
+
+    <!-- MAIN WEBSITE CONTENT -->
+    <div id="main-content" class="section-container">
+        
+        <!-- Navbar -->
+        <header class="fixed top-0 left-0 w-full p-4 md:p-6 z-40 transition-all duration-300">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <div class="flex items-center gap-2 glass-panel px-4 py-2 rounded-full backdrop-blur-md">
+                    <div class="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white font-bold text-xl">B</div>
+                    <h1 class="text-2xl font-black tracking-tight text-pink-500" style="font-family: 'Chewy', cursive;">Boba Pop!</h1>
+                </div>
+                
+                <nav class="hidden md:flex gap-2 glass-panel p-1 rounded-full text-gray-700 font-bold text-sm backdrop-blur-md">
+                    <a href="#about" class="px-5 py-2 rounded-full hover:bg-white hover:text-pink-500 transition">About Us</a>
+                    <a href="#menu" class="px-5 py-2 rounded-full hover:bg-white hover:text-pink-500 transition">Menu</a>
+                    <a href="#community" class="px-5 py-2 rounded-full hover:bg-white hover:text-pink-500 transition">Community</a>
+                    <a href="#contact" class="px-5 py-2 rounded-full hover:bg-white hover:text-pink-500 transition">Contact</a>
+                </nav>
+
+                <!-- Updated Cart Button with Red Badge -->
+                <button id="nav-cart-btn" onclick="openCart()" class="relative bg-black text-white px-6 py-2 rounded-full font-bold hover:bg-gray-800 transition btn-bouncy shadow-lg border-2 border-white/50 group">
+                    <span>Cart</span>
+                    <span id="cart-badge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center border-2 border-white transform scale-0 transition-transform duration-200">0</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- HERO SECTION: Landing -->
+        <section class="hero-section w-full max-w-7xl mx-auto p-4 md:p-8 relative">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center mt-24 md:mt-20">
+                <!-- Text Side -->
+                <div class="text-center z-10 reveal active">
+                    <span class="bg-white/80 backdrop-blur-sm text-pink-500 px-4 md:px-6 py-2 rounded-full text-xs md:text-sm font-bold uppercase tracking-widest mb-4 md:mb-6 shadow-lg animate-float-delay inline-block">
+                        ✨ The Future of Bubble Tea
+                    </span>
+                    <h1 class="text-5xl sm:text-6xl md:text-8xl font-black text-gray-800 mb-4 md:mb-6 text-pop leading-tight" style="font-family: 'Chewy', cursive;">
+                        Sip into <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500">Happiness</span>
+                    </h1>
+                    <p class="text-lg md:text-xl text-gray-600 font-medium mb-8 md:mb-10 glass-panel p-4 md:p-6 rounded-3xl border-l-8 border-pink-400 max-w-xl mx-auto">
+                        Experience the wobbly, bubbly joy of Boba Pop. Hand-crafted flavors, real fruit, and a seamless way to customize every drop.
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button onclick="openBuilder()" class="bg-gray-900 text-white text-lg md:text-xl font-bold py-4 px-8 rounded-full shadow-2xl hover:shadow-pink-500/50 hover:bg-gray-800 transition transform hover:-translate-y-2 btn-bouncy border-4 border-white/20 backdrop-blur-sm flex items-center justify-center gap-3">
+                            <span>Make Your Bubble Tea</span>
+                        </button>
+                        <a href="#menu" class="bg-white/80 text-gray-800 text-lg md:text-xl font-bold py-4 px-8 rounded-full shadow-xl hover:bg-white transition transform hover:-translate-y-2 btn-bouncy flex items-center justify-center gap-3">
+                            View Menu
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Visual Side (2.5D Composition) -->
+                <!-- Scaled down container on mobile -->
+                <div class="relative h-[300px] md:h-[500px] w-full flex items-center justify-center reveal active" style="transition-delay: 200ms;">
+                    <!-- Decorative Circle -->
+                    <div class="absolute w-[250px] h-[250px] md:w-[400px] md:h-[400px] bg-gradient-to-tr from-pink-300 to-purple-300 rounded-full opacity-50 blur-2xl md:blur-3xl animate-pulse"></div>
+                    
+                    <!-- Floating Elements Stack -->
+                    <div class="relative z-10 animate-float">
+                        <div class="text-[120px] md:text-[200px] drop-shadow-2xl filter brightness-110 transform rotate-12">🧋</div>
+                    </div>
+                    
+                    <!-- Orbiting Satellites -->
+                    <div class="absolute top-0 right-4 md:right-10 animate-float-delay text-4xl md:text-6xl drop-shadow-lg">🍓</div>
+                    <div class="absolute bottom-10 md:bottom-20 left-4 md:left-10 animate-float text-4xl md:text-6xl drop-shadow-lg" style="animation-duration: 4s;">🥭</div>
+                    <div class="absolute top-10 md:top-20 left-0 animate-bounce text-2xl md:text-4xl opacity-80">✨</div>
+                    <div class="absolute bottom-20 md:bottom-40 right-0 animate-bounce text-2xl md:text-4xl opacity-80" style="animation-delay: 1s;">✨</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Marquee Strip -->
+        <div class="w-full bg-pink-500 text-white py-3 md:py-4 rotate-1 mb-12 shadow-lg relative z-20 overflow-hidden border-y-4 border-white">
+            <div class="marquee-container">
+                <div class="marquee-content text-lg md:text-xl font-black font-chewy tracking-widest">
+                    FRESHLY BREWED DAILY  •  ORGANIC MILK  •  REAL FRUIT PUREE  •  CHEWY BOBA  •  VEGAN OPTIONS AVAILABLE  •  FRESHLY BREWED DAILY  •  ORGANIC MILK  •  REAL FRUIT PUREE  •  CHEWY BOBA  •
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION: About Us -->
+        <section id="about" class="w-full py-16 md:py-24 relative z-20">
+            <div class="absolute inset-0 bg-pink-50/50 backdrop-blur-lg -z-10 border-t border-white/50"></div>
+            <div class="max-w-7xl mx-auto px-4 md:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <!-- Real Image Collage -->
+                    <div class="relative reveal order-2 md:order-1 mt-8 md:mt-0">
+                        <!-- Main Image -->
+                        <div class="glass-card p-2 md:p-3 rounded-[2.5rem] transform -rotate-2 relative z-10">
+                            <div class="h-64 md:h-96 rounded-[2rem] overflow-hidden relative shadow-lg">
+                                <img src="https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=800&q=80" alt="Barista Team" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                                <div class="absolute bottom-4 left-4 md:bottom-6 md:left-6 text-white">
+                                    <p class="font-bold text-lg md:text-xl">The Boba Pop Team</p>
+                                    <p class="text-xs md:text-sm opacity-90">Brewing since 2018</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Floating Secondary Image -->
+                        <div class="absolute -bottom-6 -right-2 md:-bottom-10 md:-right-10 w-32 h-32 md:w-48 md:h-48 glass-card p-2 rounded-[1.5rem] md:rounded-[2rem] transform rotate-6 z-20 animate-float-delay">
+                            <div class="w-full h-full rounded-[1rem] md:rounded-[1.5rem] overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1597481499750-3e6b22637e12?auto=format&fit=crop&w=400&q=80" alt="Tea Leaves" class="w-full h-full object-cover">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="reveal order-1 md:order-2">
+                        <span class="text-pink-500 font-bold tracking-widest uppercase mb-2 block text-sm">Our Story</span>
+                        <h2 class="text-4xl md:text-5xl font-black text-gray-800 mb-4 md:mb-6 text-pop" style="font-family: 'Chewy', cursive;">Real Tea. Real People.</h2>
+                        <p class="text-base md:text-lg text-gray-600 mb-6 font-medium leading-relaxed">
+                            Boba Pop wasn't born in a boardroom. It started in a tiny kitchen with a simple mission: to take the "fake" out of bubble tea. We ditched the powders and artificial syrups for <strong>real fruit purees</strong>, premium tea leaves sourced directly from mountain farms, and boba cooked fresh every 4 hours.
+                        </p>
+                        <div class="flex flex-wrap gap-3 md:gap-4">
+                            <div class="flex items-center gap-2 bg-white/60 px-4 py-2 rounded-full border border-white shadow-sm">
+                                <span class="text-green-500">🌿</span> <span class="font-bold text-gray-700 text-xs md:text-sm">100% Organic Tea</span>
+                            </div>
+                            <div class="flex items-center gap-2 bg-white/60 px-4 py-2 rounded-full border border-white shadow-sm">
+                                <span class="text-orange-500">🍊</span> <span class="font-bold text-gray-700 text-xs md:text-sm">Fresh Fruit Only</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: FAN FAVORITES MENU -->
+        <section id="menu" class="w-full py-16 md:py-24 relative z-20">
+            <div class="absolute inset-0 bg-white/40 backdrop-blur-lg -z-10 border-t border-white/50"></div>
+            
+            <div class="max-w-7xl mx-auto px-4 md:px-8">
+                <div class="text-center mb-12 md:mb-16 reveal">
+                    <span class="text-pink-500 font-bold tracking-widest uppercase mb-2 block text-sm">Our Bestsellers</span>
+                    <h2 class="text-4xl md:text-6xl font-black text-gray-800 mb-4 text-pop" style="font-family: 'Chewy', cursive;">Fan Favorites</h2>
+                    <p class="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">Not in the mood to build? These classics are tried, true, and totally delicious.</p>
+                </div>
+
+                <!-- Initial Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-12">
+                    <!-- Standard Menu Item 1 -->
+                    <div class="glass-card p-5 md:p-6 rounded-[2rem] md:rounded-[2.5rem] hover:bg-white/90 transition duration-300 cursor-pointer group hover:-translate-y-2 reveal">
+                        <div class="h-48 md:h-64 bg-orange-100 rounded-[1.5rem] md:rounded-[2rem] mb-6 flex items-center justify-center text-7xl md:text-8xl group-hover:scale-105 transition shadow-inner relative overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-b from-transparent to-orange-200/50"></div>
+                            🧋
+                        </div>
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xl md:text-2xl font-black text-gray-800">Brown Sugar</h3>
+                            <span class="bg-black text-white px-3 py-1 rounded-full text-xs md:text-sm font-bold">$5.50</span>
+                        </div>
+                        <p class="text-gray-500 text-sm font-medium mb-6 leading-relaxed">Black tea, fresh organic milk, and warm, slow-cooked brown sugar pearls.</p>
+                        <button onclick="addPresetToCart('Classic Brown Sugar', 5.50)" class="w-full py-3 rounded-xl border-2 border-gray-900 font-bold hover:bg-gray-900 hover:text-white transition active:scale-95">Add to Cart</button>
+                    </div>
+
+                    <!-- Standard Menu Item 2 -->
+                    <div class="glass-card p-5 md:p-6 rounded-[2rem] md:rounded-[2.5rem] hover:bg-white/90 transition duration-300 cursor-pointer group hover:-translate-y-2 reveal" style="transition-delay: 100ms;">
+                        <div class="h-48 md:h-64 bg-green-100 rounded-[1.5rem] md:rounded-[2rem] mb-6 flex items-center justify-center text-7xl md:text-8xl group-hover:scale-105 transition shadow-inner relative overflow-hidden">
+                             <div class="absolute inset-0 bg-gradient-to-b from-transparent to-green-200/50"></div>
+                            🍵
+                        </div>
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xl md:text-2xl font-black text-gray-800">Matcha Red Bean</h3>
+                            <span class="bg-black text-white px-3 py-1 rounded-full text-xs md:text-sm font-bold">$6.00</span>
+                        </div>
+                        <p class="text-gray-500 text-sm font-medium mb-6 leading-relaxed">Premium Uji matcha layered with sweet red bean paste and fresh milk.</p>
+                        <button onclick="addPresetToCart('Matcha Red Bean', 6.00)" class="w-full py-3 rounded-xl border-2 border-gray-900 font-bold hover:bg-gray-900 hover:text-white transition active:scale-95">Add to Cart</button>
+                    </div>
+
+                    <!-- Standard Menu Item 3 -->
+                    <div class="glass-card p-5 md:p-6 rounded-[2rem] md:rounded-[2.5rem] hover:bg-white/90 transition duration-300 cursor-pointer group hover:-translate-y-2 reveal" style="transition-delay: 200ms;">
+                        <div class="h-48 md:h-64 bg-purple-100 rounded-[1.5rem] md:rounded-[2rem] mb-6 flex items-center justify-center text-7xl md:text-8xl group-hover:scale-105 transition shadow-inner relative overflow-hidden">
+                             <div class="absolute inset-0 bg-gradient-to-b from-transparent to-purple-200/50"></div>
+                            🧋
+                        </div>
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xl md:text-2xl font-black text-gray-800">Taro Milk Tea</h3>
+                            <span class="bg-black text-white px-3 py-1 rounded-full text-xs md:text-sm font-bold">$5.50</span>
+                        </div>
+                        <p class="text-gray-500 text-sm font-medium mb-6 leading-relaxed">Sweet and nutty taro root blended with jasmine green tea and fresh milk.</p>
+                        <button onclick="addPresetToCart('Taro Milk Tea', 5.50)" class="w-full py-3 rounded-xl border-2 border-gray-900 font-bold hover:bg-gray-900 hover:text-white transition active:scale-95">Add to Cart</button>
+                    </div>
+
+                    <!-- CTA Back to Custom -->
+                    <div class="glass-card p-5 md:p-6 rounded-[2rem] md:rounded-[2.5rem] border-4 border-pink-300 border-dashed bg-pink-50/50 hover:bg-pink-100 transition duration-300 cursor-pointer flex flex-col items-center justify-center text-center group reveal" style="transition-delay: 300ms;" onclick="openBuilder()">
+                        <div class="h-24 w-24 md:h-32 md:w-32 bg-pink-200 rounded-full mb-6 flex items-center justify-center text-4xl md:text-5xl group-hover:animate-bounce shadow-lg">✨</div>
+                        <h3 class="text-2xl md:text-3xl font-black text-pink-500 mb-2 font-chewy">Make Your Own</h3>
+                        <p class="text-gray-600 text-sm font-medium mb-8">Unleash your inner bobarista and craft your signature drink!</p>
+                        <button class="bg-pink-500 text-white w-full py-3 rounded-xl font-bold shadow-lg group-hover:shadow-pink-500/40 transition active:scale-95">Make Your Bubble Tea</button>
+                    </div>
+                </div>
+
+                <!-- View More Button -->
+                <div class="text-center reveal">
+                    <button onclick="openFullMenu()" class="bg-white text-gray-800 border-2 border-gray-200 px-8 md:px-12 py-4 rounded-full font-bold shadow-lg hover:shadow-xl hover:border-pink-300 hover:text-pink-500 transition transform hover:-translate-y-1 active:scale-95">
+                        View Full Menu
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Community Vibes -->
+        <section id="community" class="w-full py-16 md:py-24 relative z-20">
+             <div class="max-w-7xl mx-auto px-4 md:px-8">
+                <div class="text-center mb-12 md:mb-16 reveal">
+                    <h2 class="text-4xl md:text-6xl font-black text-gray-800 mb-4 text-pop" style="font-family: 'Chewy', cursive;">Community Vibes</h2>
+                    <p class="text-base md:text-xl text-gray-600">Real sips from real people. Tag <strong class="text-pink-500">@BobaPop</strong> to be featured!</p>
+                </div>
+
+                <!-- Dynamic Grid Heights for Mobile vs Desktop -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 auto-rows-[160px] md:auto-rows-[250px]">
+                    <!-- Large Feature Post -->
+                    <div class="col-span-2 row-span-2 glass-card rounded-[1.5rem] md:rounded-3xl overflow-hidden relative group cursor-pointer reveal shadow-lg">
+                        <img src="https://images.unsplash.com/photo-1525385133512-2f3bdd039054?auto=format&fit=crop&w=800&q=80" alt="Friends Drinking Boba" class="absolute inset-0 w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition"></div>
+                        <div class="absolute bottom-0 left-0 w-full p-4 md:p-6 bg-gradient-to-t from-black/80 to-transparent">
+                            <div class="flex items-center gap-2 mb-1">
+                                <div class="w-6 h-6 md:w-8 md:h-8 rounded-full bg-pink-500 flex items-center justify-center text-white text-[10px] md:text-xs font-bold">S</div>
+                                <p class="text-white font-bold text-sm md:text-lg">@sarah_sips</p>
+                            </div>
+                            <p class="text-white/90 text-xs md:text-sm">"Boba dates are the best dates! 👯‍♀️💕 #BobaPop"</p>
+                        </div>
+                        <div class="absolute top-3 right-3 md:top-4 md:right-4 bg-white/20 backdrop-blur-sm px-2 py-1 md:px-3 md:py-1 rounded-full text-white text-[10px] md:text-xs font-bold">
+                            ❤️ 1.2k
+                        </div>
+                    </div>
+                    
+                    <!-- Grid Item 2 -->
+                    <div class="glass-card rounded-[1.5rem] md:rounded-3xl overflow-hidden relative group cursor-pointer hover:-translate-y-2 transition duration-300 reveal">
+                        <img src="https://images.unsplash.com/photo-1558160074-4d7d8bdf4256?auto=format&fit=crop&w=500&q=80" alt="Brown Sugar Boba" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col justify-end p-3 md:p-4">
+                            <p class="text-white font-bold text-xs md:text-sm">@boba_king</p>
+                            <p class="text-white/80 text-[10px] md:text-xs truncate">That tiger stripe though 🐯🍯</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Grid Item 3 -->
+                    <div class="glass-card rounded-[1.5rem] md:rounded-3xl overflow-hidden relative group cursor-pointer hover:-translate-y-2 transition duration-300 reveal">
+                        <img src="https://images.unsplash.com/photo-1627885230983-6df187652705?auto=format&fit=crop&w=500&q=80" alt="Strawberry Matcha" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col justify-end p-3 md:p-4">
+                            <p class="text-white font-bold text-xs md:text-sm">@matcha_mike</p>
+                            <p class="text-white/80 text-[10px] md:text-xs truncate">Strawberry Matcha madness 🍓🍵</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Grid Item 4 -->
+                    <div class="glass-card rounded-[1.5rem] md:rounded-3xl overflow-hidden relative group cursor-pointer hover:-translate-y-2 transition duration-300 reveal">
+                        <img src="https://images.unsplash.com/photo-1594489428504-5c0c480a1533?auto=format&fit=crop&w=500&q=80" alt="Classic Milk Tea" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col justify-end p-3 md:p-4">
+                            <p class="text-white font-bold text-xs md:text-sm">@jess_eats</p>
+                            <p class="text-white/80 text-[10px] md:text-xs truncate">Classic never fails 🧋</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Grid Item 5 -->
+                    <div class="glass-card rounded-[1.5rem] md:rounded-3xl overflow-hidden relative group cursor-pointer hover:-translate-y-2 transition duration-300 reveal">
+                        <img src="https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=500&q=80" alt="Purple Taro" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col justify-end p-3 md:p-4">
+                            <p class="text-white font-bold text-xs md:text-sm">@taro_fanatic</p>
+                            <p class="text-white/80 text-[10px] md:text-xs truncate">Purple rain vibes 💜☔️</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Contact -->
+        <section id="contact" class="w-full py-16 md:py-24 relative z-20">
+            <div class="absolute inset-0 bg-white/40 backdrop-blur-lg -z-10 border-t border-white/50"></div>
+            <div class="max-w-4xl mx-auto px-4 md:px-8">
+                <div class="glass-card p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] text-center reveal">
+                    <h2 class="text-4xl md:text-5xl font-black text-gray-800 mb-8 text-pop" style="font-family: 'Chewy', cursive;">Get in Touch</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+                        <div class="text-center md:text-left">
+                            <h3 class="font-bold text-xl mb-2">Visit Us</h3>
+                            <p class="text-gray-600">123 Bubble Tea Lane<br>Sweet City, CA 90210</p>
+                            
+                            <h3 class="font-bold text-xl mt-6 mb-2">Hours</h3>
+                            <p class="text-gray-600">Mon-Sun: 11am - 9pm</p>
+                        </div>
+                        <form class="flex flex-col gap-4">
+                            <input type="email" placeholder="Your Email" class="p-4 rounded-xl bg-white/50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-400">
+                            <textarea placeholder="Message" rows="3" class="p-4 rounded-xl bg-white/50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-400"></textarea>
+                            <button type="button" class="bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition active:scale-95">Send Message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="bg-gray-900 text-white py-12 relative z-20">
+            <div class="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8">
+                <div class="flex flex-col items-center md:items-start text-center md:text-left">
+                    <h2 class="text-3xl md:text-4xl font-black mb-2" style="font-family: 'Chewy', cursive;">Boba Pop!</h2>
+                    <p class="text-gray-400 text-xs md:text-sm">© 2024 Boba Pop Inc. All rights reserved.</p>
+                </div>
+                <div class="flex gap-4">
+                     <div class="w-10 h-10 md:w-12 md:h-12 bg-gray-800 rounded-full flex items-center justify-center hover:bg-pink-500 transition cursor-pointer text-lg md:text-xl transform hover:rotate-12">📷</div>
+                     <div class="w-10 h-10 md:w-12 md:h-12 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-500 transition cursor-pointer text-lg md:text-xl transform hover:-rotate-12">🎵</div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- BUILDER APP OVERLAY (Mobile Optimized Layout)-->
+    <!-- ========================================== -->
+    <!-- Root container: Fixed layout. pointer-events-none ensures clicks to empty space pass to 3D canvas -->
+    <div id="builder-app" class="hidden fixed inset-0 z-50 flex flex-col pointer-events-none">
+        
+        <!-- Header (Top) -->
+        <header class="flex justify-between items-center p-4 md:p-6 w-full pointer-events-auto bg-gradient-to-b from-white/80 to-transparent shrink-0">
+            <div class="flex items-center gap-2">
+                <button onclick="closeBuilder()" class="bg-white hover:bg-gray-100 text-gray-800 rounded-full p-2 md:p-3 shadow-lg transition transform hover:scale-105 active:scale-95 group">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 group-hover:-translate-x-1 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </button>
+                <span class="font-bold text-gray-800 text-sm md:text-lg ml-1 md:ml-2 bg-white/70 px-3 py-1 rounded-full backdrop-blur-md shadow-sm">Builder Mode</span>
+            </div>
+            
+            <div class="bg-white/90 px-4 md:px-6 py-2 rounded-full shadow-md font-black text-pink-600 border border-pink-100 backdrop-blur-md text-sm md:text-base">
+                Total: $6.50
+            </div>
+        </header>
+
+        <!-- Main Builder Layout: Column on mobile (Flavors, Space, Toppings), Row on Desktop -->
+        <div class="flex-1 flex flex-col md:flex-row w-full max-w-7xl mx-auto relative pointer-events-none overflow-hidden pb-4 md:pb-0">
+            
+            <!-- Flavors Panel (Top on mobile, Left on desktop) -->
+            <div class="w-full md:w-1/4 p-4 md:p-6 pointer-events-auto shrink-0 z-10 flex flex-col gap-4 order-1 md:order-1">
+                <div class="glass-panel p-4 md:p-6 rounded-3xl shadow-xl border-2 border-white/50 bg-white/70">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-lg md:text-xl font-bold text-gray-800 font-chewy">1. Choose Base</h2>
+                    </div>
+                    
+                    <!-- Horizontal scroll on mobile, Grid on desktop -->
+                    <div class="flex md:grid md:grid-cols-2 gap-2 overflow-x-auto md:overflow-y-auto max-h-[15vh] md:max-h-[30vh] pb-2 scrollbar-hide custom-scroll snap-x">
+                        <button onclick="changeFlavor(0xFFDAB9, 'Peach')" class="flavor-btn shrink-0 min-w-[80px] md:min-w-0 snap-center p-3 rounded-2xl bg-orange-100 hover:bg-orange-200 text-orange-800 text-xs md:text-sm font-bold text-center transition border-2 border-transparent focus:border-orange-400 btn-bouncy">
+                            Peach
+                        </button>
+                        <button onclick="changeFlavor(0xE6E6FA, 'Taro')" class="flavor-btn shrink-0 min-w-[80px] md:min-w-0 snap-center p-3 rounded-2xl bg-purple-100 hover:bg-purple-200 text-purple-800 text-xs md:text-sm font-bold text-center transition border-2 border-transparent focus:border-purple-400 btn-bouncy">
+                            Taro
+                        </button>
+                        <button onclick="changeFlavor(0x98FF98, 'Matcha')" class="flavor-btn shrink-0 min-w-[80px] md:min-w-0 snap-center p-3 rounded-2xl bg-green-100 hover:bg-green-200 text-green-800 text-xs md:text-sm font-bold text-center transition border-2 border-transparent focus:border-green-400 btn-bouncy">
+                            Matcha
+                        </button>
+                        <button onclick="changeFlavor(0xFFB7B2, 'Berry')" class="flavor-btn shrink-0 min-w-[80px] md:min-w-0 snap-center p-3 rounded-2xl bg-red-100 hover:bg-red-200 text-red-800 text-xs md:text-sm font-bold text-center transition border-2 border-transparent focus:border-red-400 btn-bouncy">
+                            Berry
+                        </button>
+                        <button onclick="changeFlavor(0xE08D3C, 'Thai Tea')" class="flavor-btn shrink-0 min-w-[80px] md:min-w-0 snap-center p-3 rounded-2xl bg-orange-300 hover:bg-orange-400 text-white text-xs md:text-sm font-bold text-center transition border-2 border-transparent focus:border-orange-600 btn-bouncy">
+                            Thai
+                        </button>
+                        <button onclick="changeFlavor(0xE5E5E5, 'Oreo Milk')" class="flavor-btn shrink-0 min-w-[80px] md:min-w-0 snap-center p-3 rounded-2xl bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs md:text-sm font-bold text-center transition border-2 border-transparent focus:border-gray-500 btn-bouncy">
+                            Oreo
+                        </button>
+                        <button onclick="changeFlavor(0xF2C94C, 'Passion')" class="flavor-btn shrink-0 min-w-[80px] md:min-w-0 snap-center p-3 rounded-2xl bg-yellow-200 hover:bg-yellow-300 text-yellow-800 text-xs md:text-sm font-bold text-center transition border-2 border-transparent focus:border-yellow-500 btn-bouncy">
+                            Passion
+                        </button>
+                        <button onclick="changeFlavor(0xFFC0CB, 'Rose')" class="flavor-btn shrink-0 min-w-[80px] md:min-w-0 snap-center p-3 rounded-2xl bg-pink-200 hover:bg-pink-300 text-pink-800 text-xs md:text-sm font-bold text-center transition border-2 border-transparent focus:border-pink-500 btn-bouncy">
+                            Rose
+                        </button>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-3 md:p-4 rounded-2xl md:rounded-3xl text-center backdrop-blur-xl bg-white/50 shadow-md">
+                    <h3 id="drink-name" class="text-xl md:text-3xl font-black text-pink-600 text-pop leading-none" style="font-family: 'Chewy', cursive;">Peach Milk Tea</h3>
+                    <p id="topping-count" class="text-xs text-gray-600 font-bold bg-white/70 inline-block px-3 py-1 rounded-full mt-1">0 Scoops Added</p>
+                </div>
+            </div>
+
+            <!-- Center Clear Space (Ensures cup is visible and clickable on mobile) -->
+            <div class="flex-1 w-full order-2 pointer-events-none relative min-h-[30vh] flex flex-col items-center justify-center">
+                 <div id="drop-hint" class="opacity-0 transition-opacity duration-300 text-center hidden md:block">
+                    <div class="text-2xl font-bold text-gray-800 bg-white/90 px-6 py-3 rounded-full backdrop-blur-md shadow-xl animate-bounce border-4 border-pink-200">
+                        Drop it here! 🧋
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toppings Panel (Bottom on mobile, Right on desktop) -->
+            <div class="w-full md:w-1/4 p-4 md:p-6 pointer-events-auto shrink-0 z-10 flex flex-col gap-4 order-3 bg-gradient-to-t from-white/40 to-transparent md:bg-none">
+                <div class="glass-panel p-4 md:p-6 rounded-3xl shadow-xl border-2 border-white/50 bg-white/70">
+                    <div class="flex justify-between items-baseline mb-3">
+                        <h2 class="text-lg md:text-xl font-bold text-gray-800 font-chewy leading-none">2. Add Toppings</h2>
+                        <span class="text-[10px] md:text-xs text-gray-500 font-bold uppercase bg-white/50 px-2 py-1 rounded-md">Tap to Add</span>
+                    </div>
+                    
+                    <!-- Horizontal scroll on mobile, Vertical list on desktop -->
+                    <div class="flex md:flex-col gap-3 overflow-x-auto md:overflow-y-auto max-h-[15vh] md:max-h-[40vh] pb-2 scrollbar-hide custom-scroll snap-x">
+                        
+                        <div onclick="addTopping('boba')" class="draggable-source shrink-0 min-w-[100px] md:min-w-0 bg-white p-2 md:p-3 rounded-2xl flex flex-col md:flex-row items-center gap-2 md:gap-4 hover:shadow-lg transition transform hover:-translate-y-1 active:scale-95 border border-gray-100 cursor-pointer snap-center" draggable="true" ondragstart="drag(event, 'boba')">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-black flex items-center justify-center text-xl shadow-inner border border-gray-600 shrink-0">⚫</div>
+                            <div class="text-center md:text-left w-full">
+                                <h4 class="font-bold text-gray-800 text-[11px] md:text-sm leading-tight">Tapioca Pearls</h4>
+                            </div>
+                        </div>
+
+                        <div onclick="addTopping('jelly')" class="draggable-source shrink-0 min-w-[100px] md:min-w-0 bg-white p-2 md:p-3 rounded-2xl flex flex-col md:flex-row items-center gap-2 md:gap-4 hover:shadow-lg transition transform hover:-translate-y-1 active:scale-95 border border-gray-100 cursor-pointer snap-center" draggable="true" ondragstart="drag(event, 'jelly')">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-pink-300 flex items-center justify-center text-xl shadow-inner border border-pink-400 shrink-0">🧊</div>
+                            <div class="text-center md:text-left w-full">
+                                <h4 class="font-bold text-gray-800 text-[11px] md:text-sm leading-tight">Lychee Jelly</h4>
+                            </div>
+                        </div>
+
+                        <div onclick="addTopping('pudding')" class="draggable-source shrink-0 min-w-[100px] md:min-w-0 bg-white p-2 md:p-3 rounded-2xl flex flex-col md:flex-row items-center gap-2 md:gap-4 hover:shadow-lg transition transform hover:-translate-y-1 active:scale-95 border border-gray-100 cursor-pointer snap-center" draggable="true" ondragstart="drag(event, 'pudding')">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-tl-xl rounded-br-xl bg-yellow-300 flex items-center justify-center text-xl shadow-inner border border-yellow-400 shrink-0">🍮</div>
+                            <div class="text-center md:text-left w-full">
+                                <h4 class="font-bold text-gray-800 text-[11px] md:text-sm leading-tight">Egg Pudding</h4>
+                            </div>
+                        </div>
+
+                        <div onclick="addTopping('oreo')" class="draggable-source shrink-0 min-w-[100px] md:min-w-0 bg-white p-2 md:p-3 rounded-2xl flex flex-col md:flex-row items-center gap-2 md:gap-4 hover:shadow-lg transition transform hover:-translate-y-1 active:scale-95 border border-gray-100 cursor-pointer snap-center" draggable="true" ondragstart="drag(event, 'oreo')">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gray-800 flex items-center justify-center text-xl shadow-inner border border-black shrink-0">🍪</div>
+                            <div class="text-center md:text-left w-full">
+                                <h4 class="font-bold text-gray-800 text-[11px] md:text-sm leading-tight">Oreo Crumbs</h4>
+                            </div>
+                        </div>
+
+                        <div onclick="addTopping('popping')" class="draggable-source shrink-0 min-w-[100px] md:min-w-0 bg-white p-2 md:p-3 rounded-2xl flex flex-col md:flex-row items-center gap-2 md:gap-4 hover:shadow-lg transition transform hover:-translate-y-1 active:scale-95 border border-gray-100 cursor-pointer snap-center" draggable="true" ondragstart="drag(event, 'popping')">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-orange-400 flex items-center justify-center text-xl shadow-inner border border-orange-500 shrink-0">💥</div>
+                            <div class="text-center md:text-left w-full">
+                                <h4 class="font-bold text-gray-800 text-[11px] md:text-sm leading-tight">Popping Boba</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CTA on Desktop is inside right panel, on mobile it's outside. We place it here for simplicity and dock it visually -->
+                <div class="w-full flex justify-center pt-2">
+                    <button onclick="addToCart()" class="w-full md:w-auto bg-gray-900 text-white text-lg md:text-xl font-bold py-4 px-8 rounded-2xl md:rounded-full shadow-2xl hover:shadow-pink-500/30 hover:bg-gray-800 transition active:scale-95 flex justify-center items-center gap-2 border-4 border-white/40 md:border-white/20 backdrop-blur-md">
+                        <span>Add to Cart</span>
+                        <span class="text-xl">🛒</span>
+                    </button>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- FULL MENU OVERLAY (New Window Style)       -->
+    <!-- ========================================== -->
+    <div id="full-menu-overlay" class="hidden fixed inset-0 z-[70] bg-white/95 backdrop-blur-xl overflow-y-auto transition-opacity duration-300">
+        <div class="max-w-7xl mx-auto p-4 md:p-8">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-8 md:mb-12 sticky top-0 bg-white/80 backdrop-blur-md p-3 md:p-4 rounded-2xl z-10 shadow-sm border border-gray-100">
+                <div class="flex items-center gap-3 md:gap-4">
+                    <div class="w-10 h-10 md:w-12 md:h-12 bg-pink-500 rounded-full flex items-center justify-center text-white font-bold text-xl md:text-2xl">M</div>
+                    <h2 class="text-2xl md:text-4xl font-black text-gray-800" style="font-family: 'Chewy', cursive;">The Full Menu</h2>
+                </div>
+                
+                <div class="flex items-center gap-2 md:gap-4">
+                    <button id="menu-cart-btn" onclick="openCart()" class="relative bg-black text-white px-4 py-2 md:px-6 md:py-3 rounded-full font-bold hover:bg-gray-800 transition btn-bouncy shadow-md border-2 border-white/50 group text-sm md:text-base">
+                        <span>Cart</span>
+                        <span id="menu-cart-badge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center border-2 border-white transform scale-0 transition-transform duration-200">0</span>
+                    </button>
+
+                    <button onclick="closeFullMenu()" class="bg-gray-100 hover:bg-gray-200 p-2 md:p-4 rounded-full transition transform hover:rotate-90">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 md:h-8 md:w-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Menu Content -->
+            <div class="space-y-12 md:space-y-16 pb-20">
+                
+                <!-- Category: Signatures -->
+                <div>
+                    <h3 class="text-2xl md:text-3xl font-black text-gray-800 mb-6 pl-4 border-l-8 border-orange-400">Signature Series</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                        <!-- Brown Sugar -->
+                        <div class="bg-white border border-gray-100 p-5 md:p-6 rounded-[2rem] shadow-lg flex flex-col hover:shadow-xl transition group">
+                            <div class="h-40 md:h-48 bg-orange-100 rounded-3xl mb-4 md:mb-6 flex items-center justify-center text-6xl md:text-7xl relative overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-tr from-orange-200/50 to-transparent"></div>
+                                🧋
+                            </div>
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="text-xl md:text-2xl font-bold text-gray-800">Brown Sugar Boba</h4>
+                                <span class="font-bold text-base md:text-lg text-orange-500">$5.50</span>
+                            </div>
+                            <p class="text-gray-500 text-xs md:text-sm mb-6 flex-grow">Slow-cooked brown sugar pearls with fresh organic milk.</p>
+                            <button onclick="addPresetToCart('Brown Sugar Boba', 5.50)" class="w-full bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition active:scale-95">Add to Order</button>
+                        </div>
+
+                        <!-- Thai Tea -->
+                        <div class="bg-white border border-gray-100 p-5 md:p-6 rounded-[2rem] shadow-lg flex flex-col hover:shadow-xl transition group">
+                            <div class="h-40 md:h-48 bg-orange-200 rounded-3xl mb-4 md:mb-6 flex items-center justify-center text-6xl md:text-7xl relative overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-tr from-orange-400/30 to-transparent"></div>
+                                🧡
+                            </div>
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="text-xl md:text-2xl font-bold text-gray-800">Thai Milk Tea</h4>
+                                <span class="font-bold text-base md:text-lg text-orange-500">$5.50</span>
+                            </div>
+                            <p class="text-gray-500 text-xs md:text-sm mb-6 flex-grow">Authentic spiced black tea with sweetened condensed milk.</p>
+                            <button onclick="addPresetToCart('Thai Milk Tea', 5.50)" class="w-full bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition active:scale-95">Add to Order</button>
+                        </div>
+
+                        <!-- Taro -->
+                        <div class="bg-white border border-gray-100 p-5 md:p-6 rounded-[2rem] shadow-lg flex flex-col hover:shadow-xl transition group">
+                            <div class="h-40 md:h-48 bg-purple-100 rounded-3xl mb-4 md:mb-6 flex items-center justify-center text-6xl md:text-7xl relative overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-tr from-purple-300/30 to-transparent"></div>
+                                🍠
+                            </div>
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="text-xl md:text-2xl font-bold text-gray-800">Taro Milk Tea</h4>
+                                <span class="font-bold text-base md:text-lg text-purple-500">$5.50</span>
+                            </div>
+                            <p class="text-gray-500 text-xs md:text-sm mb-6 flex-grow">Creamy, nutty real taro root blended with jasmine tea.</p>
+                            <button onclick="addPresetToCart('Taro Milk Tea', 5.50)" class="w-full bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition active:scale-95">Add to Order</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category: Fruit Tea -->
+                <div>
+                    <h3 class="text-2xl md:text-3xl font-black text-gray-800 mb-6 pl-4 border-l-8 border-yellow-400">Fruit Refreshers</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                        <!-- Passion Fruit -->
+                        <div class="bg-white border border-gray-100 p-5 md:p-6 rounded-[2rem] shadow-lg flex flex-col hover:shadow-xl transition group">
+                            <div class="h-40 md:h-48 bg-yellow-100 rounded-3xl mb-4 md:mb-6 flex items-center justify-center text-6xl md:text-7xl relative overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-tr from-yellow-300/30 to-transparent"></div>
+                                🍹
+                            </div>
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="text-xl md:text-2xl font-bold text-gray-800">Passion Fruit GT</h4>
+                                <span class="font-bold text-base md:text-lg text-yellow-500">$5.00</span>
+                            </div>
+                            <p class="text-gray-500 text-xs md:text-sm mb-6 flex-grow">Zesty passion fruit pulp shaken with premium green tea.</p>
+                            <button onclick="addPresetToCart('Passion Fruit GT', 5.00)" class="w-full bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition active:scale-95">Add to Order</button>
+                        </div>
+
+                        <!-- Lychee Rose -->
+                        <div class="bg-white border border-gray-100 p-5 md:p-6 rounded-[2rem] shadow-lg flex flex-col hover:shadow-xl transition group">
+                            <div class="h-40 md:h-48 bg-pink-100 rounded-3xl mb-4 md:mb-6 flex items-center justify-center text-6xl md:text-7xl relative overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-tr from-pink-300/30 to-transparent"></div>
+                                🌹
+                            </div>
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="text-xl md:text-2xl font-bold text-gray-800">Lychee Rose</h4>
+                                <span class="font-bold text-base md:text-lg text-pink-500">$5.75</span>
+                            </div>
+                            <p class="text-gray-500 text-xs md:text-sm mb-6 flex-grow">Floral rose tea infused with sweet lychee jelly.</p>
+                            <button onclick="addPresetToCart('Lychee Rose', 5.75)" class="w-full bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition active:scale-95">Add to Order</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category: Specials -->
+                <div>
+                    <h3 class="text-2xl md:text-3xl font-black text-gray-800 mb-6 pl-4 border-l-8 border-green-400">Special Blends</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                        <!-- Matcha -->
+                        <div class="bg-white border border-gray-100 p-5 md:p-6 rounded-[2rem] shadow-lg flex flex-col hover:shadow-xl transition group">
+                            <div class="h-40 md:h-48 bg-green-100 rounded-3xl mb-4 md:mb-6 flex items-center justify-center text-6xl md:text-7xl relative overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-tr from-green-300/30 to-transparent"></div>
+                                🍵
+                            </div>
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="text-xl md:text-2xl font-bold text-gray-800">Matcha Red Bean</h4>
+                                <span class="font-bold text-base md:text-lg text-green-500">$6.00</span>
+                            </div>
+                            <p class="text-gray-500 text-xs md:text-sm mb-6 flex-grow">Uji Matcha layered with sweet azuki beans.</p>
+                            <button onclick="addPresetToCart('Matcha Red Bean', 6.00)" class="w-full bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition active:scale-95">Add to Order</button>
+                        </div>
+
+                        <!-- Oreo -->
+                        <div class="bg-white border border-gray-100 p-5 md:p-6 rounded-[2rem] shadow-lg flex flex-col hover:shadow-xl transition group">
+                            <div class="h-40 md:h-48 bg-gray-200 rounded-3xl mb-4 md:mb-6 flex items-center justify-center text-6xl md:text-7xl relative overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-tr from-gray-400/30 to-transparent"></div>
+                                🍪
+                            </div>
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="text-xl md:text-2xl font-bold text-gray-800">Oreo Cloud</h4>
+                                <span class="font-bold text-base md:text-lg text-gray-600">$6.50</span>
+                            </div>
+                            <p class="text-gray-500 text-xs md:text-sm mb-6 flex-grow">Vanilla milk slush with crunchy cookie crumbs.</p>
+                            <button onclick="addPresetToCart('Oreo Cloud', 6.50)" class="w-full bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition active:scale-95">Add to Order</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- CART DRAWER OVERLAY                        -->
+    <!-- ========================================== -->
+    <div id="cart-overlay" class="hidden fixed inset-0 z-[80] flex justify-end bg-black/40 backdrop-blur-sm transition-opacity duration-300">
+        <!-- Slide-in Panel -->
+        <div id="cart-panel" class="w-full max-w-md bg-white/95 h-full shadow-2xl p-6 flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-2">
+                    <h2 class="text-2xl md:text-3xl font-black text-gray-800" style="font-family: 'Chewy', cursive;">Your Order</h2>
+                    <span class="text-xl">🧋</span>
+                </div>
+                <div class="flex items-center">
+                    <button id="clear-cart-btn" onclick="clearCart()" class="hidden text-xs font-bold text-red-400 hover:text-red-600 px-3 py-2 rounded-lg hover:bg-red-50 transition mr-2">
+                        Remove All
+                    </button>
+                    <button onclick="closeCart()" class="p-2 hover:bg-gray-100 rounded-full transition group">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 md:h-8 md:w-8 text-gray-800 group-hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="cart-items-container" class="flex-1 overflow-y-auto space-y-3 md:space-y-4 pr-1 md:pr-2 custom-scroll">
+                <!-- Items will be injected here via JS -->
+                <div id="empty-cart-msg" class="flex flex-col items-center justify-center h-48 text-gray-400">
+                    <span class="text-4xl mb-2">🛒</span>
+                    <p class="text-sm md:text-base">Your cart is empty.</p>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 pt-6 mt-4">
+                <div class="flex justify-between items-center text-lg md:text-xl font-bold text-gray-800 mb-4">
+                    <span>Total</span>
+                    <span id="cart-total">$0.00</span>
+                </div>
+                <button class="w-full bg-black text-white py-4 rounded-xl md:rounded-full font-bold hover:bg-gray-800 transition active:scale-95 flex justify-center gap-2">
+                    <span>Checkout</span>
+                    <span>→</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- SCROLL ANIMATION OBSERVER ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        });
+
+        // --- DATA STATE ---
+        let cartItems = [];
+
+        // --- UI Logic: Open/Close Builder ---
+        function openBuilder() {
+            const builder = document.getElementById('builder-app');
+            const main = document.getElementById('main-content');
+            const canvas = document.getElementById('canvas-container');
+            
+            builder.classList.remove('hidden');
+            // Small delay to allow display:block to apply before opacity transition
+            setTimeout(() => {
+                builder.classList.add('active');
+                main.classList.add('blurred');
+                canvas.classList.add('visible'); // Show canvas
+                document.body.classList.add('builder-active');
+            }, 10);
+        }
+
+        function closeBuilder() {
+            const builder = document.getElementById('builder-app');
+            const main = document.getElementById('main-content');
+            const canvas = document.getElementById('canvas-container');
+            
+            builder.classList.remove('active');
+            main.classList.remove('blurred');
+            canvas.classList.remove('visible'); // Hide canvas
+            document.body.classList.remove('builder-active');
+            
+            // Wait for transition to finish before hiding
+            setTimeout(() => {
+                builder.classList.add('hidden');
+            }, 400);
+        }
+
+        // --- CART LOGIC ---
+
+        function openCart() {
+            const overlay = document.getElementById('cart-overlay');
+            overlay.classList.remove('hidden');
+            // Trigger animation
+            setTimeout(() => {
+                overlay.classList.add('active');
+            }, 10);
+            renderCart();
+        }
+
+        function closeCart() {
+            const overlay = document.getElementById('cart-overlay');
+            overlay.classList.remove('active');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 300);
+        }
+
+        function clearCart() {
+            cartItems = [];
+            updateCartButton();
+            renderCart();
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-items-container');
+            const totalEl = document.getElementById('cart-total');
+            const clearBtn = document.getElementById('clear-cart-btn');
+            
+            container.innerHTML = '';
+            
+            if(cartItems.length === 0) {
+                if(clearBtn) clearBtn.classList.add('hidden');
+                container.innerHTML = `
+                <div id="empty-cart-msg" class="flex flex-col items-center justify-center h-48 text-gray-400">
+                    <span class="text-4xl mb-2">🛒</span>
+                    <p class="text-sm md:text-base">Your cart is empty.</p>
+                </div>`;
+                totalEl.innerText = "$0.00";
+                return;
+            }
+
+            if(clearBtn) clearBtn.classList.remove('hidden');
+
+            let total = 0;
+
+            cartItems.forEach((item, index) => {
+                total += item.price;
+                
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center bg-gray-50 p-3 md:p-4 rounded-2xl border border-gray-100";
+                div.innerHTML = `
+                    <div class="flex items-center gap-3 md:gap-4">
+                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-pink-100 flex items-center justify-center text-lg md:text-xl shrink-0">🧋</div>
+                        <div>
+                            <h4 class="font-bold text-gray-800 text-sm md:text-base leading-tight">${item.name}</h4>
+                            <p class="text-[10px] md:text-xs text-gray-500">${item.desc}</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end pl-2">
+                        <span class="font-bold text-sm md:text-base">$${item.price.toFixed(2)}</span>
+                        <button onclick="removeFromCart(${index})" class="text-[10px] md:text-xs text-red-400 hover:text-red-600 font-bold mt-1 uppercase tracking-wider bg-red-50 px-2 py-1 rounded-md">Remove</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            totalEl.innerText = `$${total.toFixed(2)}`;
+        }
+
+        function addToCart() {
+            const name = document.getElementById('drink-name').innerText;
+            const item = {
+                name: name,
+                desc: `Custom Build • ${toppingCount} Toppings`,
+                price: 6.50
+            };
+            
+            cartItems.push(item);
+            updateCartButton();
+            
+            // Reset Logic
+            pearls.forEach(p => scene.remove(p));
+            pearls = [];
+            toppingCount = 0;
+            changeFlavor(0xFFDAB9, 'Peach');
+            document.getElementById('topping-count').innerText = "0 Scoops Added";
+            
+            closeBuilder();
+        }
+
+        function addPresetToCart(name, price) {
+            cartItems.push({
+                name: name,
+                desc: "Signature Preset",
+                price: price
+            });
+            updateCartButton();
+        }
+
+        function removeFromCart(index) {
+            cartItems.splice(index, 1);
+            updateCartButton();
+            renderCart();
+        }
+
+        function updateCartButton() {
+            // Main Nav Button
+            const navBadge = document.getElementById('cart-badge');
+            const navBtn = document.getElementById('nav-cart-btn');
+            
+            // Menu Internal Button
+            const menuBadge = document.getElementById('menu-cart-badge');
+            const menuBtn = document.getElementById('menu-cart-btn');
+
+            const count = cartItems.length;
+            
+            // Helper to update a set
+            const updateSet = (badge, btn) => {
+                if(!badge || !btn) return;
+                
+                badge.innerText = count;
+                
+                if (count > 0) {
+                    badge.classList.remove('scale-0');
+                    badge.classList.add('scale-100');
+                } else {
+                    badge.classList.remove('scale-100');
+                    badge.classList.add('scale-0');
+                }
+
+                btn.classList.add('scale-105');
+                setTimeout(() => btn.classList.remove('scale-105'), 200);
+            };
+
+            updateSet(navBadge, navBtn);
+            updateSet(menuBadge, menuBtn);
+        }
+
+        // --- FULL MENU LOGIC ---
+        function openFullMenu() {
+            const overlay = document.getElementById('full-menu-overlay');
+            overlay.classList.remove('hidden');
+            // Allow browser to render display:block before fading in
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+            }, 10);
+            document.body.classList.add('builder-active'); // Prevent scroll on body
+        }
+
+        function closeFullMenu() {
+            const overlay = document.getElementById('full-menu-overlay');
+            overlay.classList.add('opacity-0');
+            
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 300);
+            document.body.classList.remove('builder-active');
+        }
+
+
+        // --- 1. Three.js Setup ---
+        let scene, camera, renderer;
+        let cup, liquid, cupLabelMesh;
+        let pearls = []; 
+        let clock = new THREE.Clock();
+
+        function init3D() {
+            const container = document.getElementById('canvas-container');
+            
+            // Scene
+            scene = new THREE.Scene();
+            
+            // Camera
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 2, 8);
+            camera.lookAt(0, 0, 0);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            // Sorting fix for transparency
+            renderer.sortObjects = true;
+            container.appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            dirLight.position.set(5, 10, 7);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 1024;
+            dirLight.shadow.mapSize.height = 1024;
+            scene.add(dirLight);
+
+            const backLight = new THREE.PointLight(0xFF69B4, 0.6);
+            backLight.position.set(-5, 2, -5);
+            scene.add(backLight);
+
+            createCup();
+            createLiquid();
+            createCupLabel(); 
+            createFloatingIngredients(); 
+
+            animate();
+
+            window.addEventListener('resize', onWindowResize, false);
+            
+            // Prevent drag defaults
+            document.body.addEventListener('dragover', allowDrop);
+            document.body.addEventListener('drop', handleDrop);
+
+            // Desktop Drag Hint
+            document.body.addEventListener('dragenter', (e) => {
+                const builder = document.getElementById('builder-app');
+                if(!builder.classList.contains('hidden') && window.innerWidth >= 768) {
+                     const hint = document.getElementById('drop-hint');
+                     if(hint) hint.style.opacity = '1';
+                }
+            });
+            document.body.addEventListener('dragleave', (e) => {
+                if(e.relatedTarget === null) {
+                   const hint = document.getElementById('drop-hint');
+                   if(hint) hint.style.opacity = '0'; 
+                }
+            });
+
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => document.getElementById('loader').remove(), 500);
+            }, 1000);
+        }
+
+        // --- 2. Object Creation ---
+
+        function createCup() {
+            const geometry = new THREE.CylinderGeometry(1.5, 1.2, 4, 32, 1, true); 
+            const material = new THREE.MeshPhysicalMaterial({
+                color: 0xffffff,
+                metalness: 0.1,
+                roughness: 0.05,
+                transmission: 0.9, 
+                thickness: 0.1,
+                clearcoat: 1.0,
+                side: THREE.DoubleSide,
+                transparent: true,
+                depthWrite: false, 
+            });
+            
+            cup = new THREE.Mesh(geometry, material);
+            cup.position.y = 0;
+            cup.castShadow = true;
+            cup.receiveShadow = true;
+            cup.renderOrder = 2;
+            scene.add(cup);
+
+            const bottomGeo = new THREE.CylinderGeometry(1.2, 1.2, 0.1, 32);
+            const bottomMesh = new THREE.Mesh(bottomGeo, material);
+            bottomMesh.position.y = -2;
+            bottomMesh.renderOrder = 2;
+            cup.add(bottomMesh); 
+            
+            const strawGeo = new THREE.CylinderGeometry(0.1, 0.1, 6, 16);
+            const strawMat = new THREE.MeshPhongMaterial({ color: 0x333333 });
+            const straw = new THREE.Mesh(strawGeo, strawMat);
+            straw.position.set(0.5, 1, 0);
+            straw.rotation.z = -0.2;
+            scene.add(straw);
+        }
+
+        function createLiquid() {
+            const geometry = new THREE.CylinderGeometry(1.38, 1.15, 3.6, 32);
+            const material = new THREE.MeshPhysicalMaterial({
+                color: 0xFFDAB9,
+                metalness: 0,
+                roughness: 0.2, 
+                transmission: 0.3, 
+                opacity: 0.75, 
+                transparent: true,
+                depthWrite: false 
+            });
+            
+            liquid = new THREE.Mesh(geometry, material);
+            liquid.position.y = -0.2; 
+            liquid.renderOrder = 1; 
+            scene.add(liquid);
+        }
+
+        function createCupLabel() {
+            const geometry = new THREE.PlaneGeometry(1.5, 0.7);
+            const texture = createLabelTexture("Peach");
+            const material = new THREE.MeshBasicMaterial({ 
+                map: texture,
+                transparent: true,
+                side: THREE.DoubleSide,
+                depthTest: true,
+                depthWrite: true
+            });
+            cupLabelMesh = new THREE.Mesh(geometry, material);
+            cupLabelMesh.position.set(0, 0.5, 1.35); 
+            cupLabelMesh.rotation.x = -0.05; 
+            cup.add(cupLabelMesh);
+        }
+
+        function createLabelTexture(text) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 512, 256);
+            ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+            roundRect(ctx, 20, 20, 472, 216, 40, true, false);
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = "#FF69B4"; 
+            roundRect(ctx, 20, 20, 472, 216, 40, false, true);
+            ctx.font = "bold 80px 'Chewy', cursive"; 
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "#333";
+            ctx.fillText(text, 256, 100);
+            ctx.font = "40px 'Fredoka', sans-serif";
+            ctx.fillStyle = "#666";
+            ctx.fillText("MILK TEA", 256, 170);
+            const tex = new THREE.CanvasTexture(canvas);
+            return tex;
+        }
+
+        function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            if (fill) ctx.fill();
+            if (stroke) ctx.stroke();
+        }
+
+        function createFloatingIngredients() {
+            const shapes = [];
+            const geo1 = new THREE.IcosahedronGeometry(0.4, 0);
+            const geo2 = new THREE.TorusGeometry(0.3, 0.1, 8, 20);
+            const mat1 = new THREE.MeshStandardMaterial({ color: 0xFFD1DC, flatShading: true });
+            const mat2 = new THREE.MeshStandardMaterial({ color: 0x98FF98, flatShading: true });
+
+            for(let i=0; i<10; i++) {
+                const mesh = new THREE.Mesh(Math.random() > 0.5 ? geo1 : geo2, Math.random() > 0.5 ? mat1 : mat2);
+                mesh.position.set(
+                    (Math.random() - 0.5) * 10,
+                    (Math.random() - 0.5) * 10,
+                    (Math.random() - 0.5) * 5 - 2 
+                );
+                mesh.userData = {
+                    speed: Math.random() * 0.02,
+                    rotSpeed: Math.random() * 0.02
+                };
+                scene.add(mesh);
+                shapes.push(mesh);
+            }
+            scene.userData.shapes = shapes;
+        }
+
+        // --- 3. Interaction Logic ---
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function drag(ev, type) {
+            ev.dataTransfer.setData("type", type);
+        }
+
+        function handleDrop(ev) {
+            ev.preventDefault();
+            const hint = document.getElementById('drop-hint');
+            if(hint) hint.style.opacity = '0';
+            
+            const type = ev.dataTransfer.getData("type");
+            const builder = document.getElementById('builder-app');
+            if(!builder.classList.contains('hidden') && type) {
+                addTopping(type);
+            }
+        }
+
+        function changeFlavor(colorHex, name) {
+            liquid.material.color.setHex(colorHex);
+            document.getElementById('drink-name').innerText = name + (name.includes('Tea') || name.includes('Latte') || name.includes('Passion') || name.includes('Rose') || name.includes('Oreo') ? '' : ' Milk Tea');
+            if(cupLabelMesh) {
+                cupLabelMesh.material.map = createLabelTexture(name);
+                cupLabelMesh.material.needsUpdate = true;
+            }
+            triggerSquish();
+        }
+
+        let toppingCount = 0;
+
+        function addTopping(type) {
+            toppingCount++;
+            document.getElementById('topping-count').innerText = `${toppingCount} Scoops Added`;
+            
+            const particleCount = 12; 
+            let geometry, material;
+            
+            if (type === 'boba') {
+                geometry = new THREE.SphereGeometry(0.15, 32, 32); 
+                material = new THREE.MeshPhysicalMaterial({
+                    color: 0x220900, 
+                    metalness: 0,
+                    roughness: 0.1,  
+                    clearcoat: 1.0,  
+                    clearcoatRoughness: 0.1,
+                    transmission: 0.2, 
+                    transparent: true,
+                    opacity: 0.95
+                });
+            } else if (type === 'jelly') {
+                geometry = new THREE.BoxGeometry(0.25, 0.25, 0.25); 
+                material = new THREE.MeshPhysicalMaterial({
+                    color: 0xffffff,
+                    metalness: 0,
+                    roughness: 0.0,
+                    transmission: 0.9, 
+                    thickness: 0.5,
+                    ior: 1.33, 
+                    clearcoat: 1.0,
+                    transparent: true
+                });
+            } else if (type === 'pudding') {
+                geometry = new THREE.DodecahedronGeometry(0.2); 
+                material = new THREE.MeshPhysicalMaterial({ 
+                    color: 0xFFD700, 
+                    metalness: 0,
+                    roughness: 0.2,
+                    clearcoat: 0.8, 
+                    clearcoatRoughness: 0.1,
+                    transmission: 0.1
+                });
+            } else if (type === 'oreo') {
+                geometry = new THREE.TetrahedronGeometry(0.12, 0); 
+                material = new THREE.MeshStandardMaterial({ 
+                    color: 0x222222, 
+                    roughness: 0.9,
+                    metalness: 0.0
+                });
+            } else if (type === 'popping') {
+                geometry = new THREE.SphereGeometry(0.14, 16, 16); 
+                material = new THREE.MeshPhysicalMaterial({
+                    color: 0xFF4500, 
+                    transmission: 0.6,
+                    roughness: 0.1,
+                    metalness: 0,
+                    clearcoat: 1.0,
+                    transparent: true,
+                    opacity: 0.9
+                });
+            } else {
+                geometry = new THREE.SphereGeometry(0.15, 16, 16);
+                material = new THREE.MeshStandardMaterial({ color: 0x000000 });
+            }
+
+            for(let i = 0; i < particleCount; i++) {
+                const mesh = new THREE.Mesh(geometry, material);
+                const r = Math.sqrt(Math.random()) * 1.0; 
+                const theta = Math.random() * 2 * Math.PI;
+                const x = r * Math.cos(theta);
+                const z = r * Math.sin(theta);
+
+                mesh.position.set(x, 3.5 + Math.random() * 2, z);
+                mesh.rotation.set(Math.random(), Math.random(), Math.random());
+                mesh.renderOrder = 0; 
+
+                mesh.userData = {
+                    velocity: new THREE.Vector3(0, -0.08 - Math.random() * 0.1, 0),
+                    active: true,
+                    settled: false
+                };
+
+                scene.add(mesh);
+                pearls.push(mesh);
+            }
+            triggerSquish();
+            
+            // Subtle UI feedback for mobile tapping
+            if(window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate(50);
+            }
+        }
+
+        let squishTime = 0;
+        function triggerSquish() {
+            squishTime = 1; 
+        }
+
+        // --- 4. Animation Loop ---
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            if(scene.userData.shapes) {
+                scene.userData.shapes.forEach(shape => {
+                    shape.rotation.x += shape.userData.rotSpeed;
+                    shape.rotation.y += shape.userData.rotSpeed;
+                    shape.position.y += Math.sin(time + shape.position.x) * 0.005;
+                });
+            }
+
+            if(squishTime > 0) {
+                const scaleY = 1 - Math.sin(squishTime * Math.PI) * 0.15; 
+                const scaleXZ = 1 + Math.sin(squishTime * Math.PI) * 0.08;
+                cup.scale.set(scaleXZ, scaleY, scaleXZ);
+                liquid.scale.set(0.98 * scaleXZ, 0.9 * scaleY, 0.98 * scaleXZ);
+                
+                squishTime -= 0.04;
+                if(squishTime < 0) {
+                    squishTime = 0;
+                    cup.scale.set(1, 1, 1);
+                    liquid.scale.set(0.98, 0.9, 0.98);
+                }
+            } else {
+                cup.position.y = Math.sin(time) * 0.1;
+                liquid.position.y = -0.2 + Math.sin(time) * 0.1;
+            }
+            
+            pearls.forEach(p => {
+                if (p.userData.active && !p.userData.settled) {
+                    p.position.add(p.userData.velocity);
+                    const floorBase = -1.85;
+                    const stackHeight = (toppingCount * 0.04); 
+                    const targetY = floorBase + stackHeight + (Math.random() * 0.2);
+                    
+                    if (p.position.y < targetY) {
+                        p.position.y = targetY; 
+                        p.userData.settled = true;
+                        p.userData.velocity.set(0,0,0);
+                        const dist = Math.sqrt(p.position.x**2 + p.position.z**2);
+                        if(dist > 1.1) {
+                            const ratio = 1.1 / dist;
+                            p.position.x *= ratio;
+                            p.position.z *= ratio;
+                        }
+                    }
+                } else if (p.userData.settled) {
+                    p.position.y += Math.sin(time) * 0.002; 
+                }
+            });
+
+            camera.position.x = Math.sin(time * 0.2) * 0.5;
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        init3D();
+    </script>
+</body>
+</html>
