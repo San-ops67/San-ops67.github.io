@@ -1,26 +1,17 @@
+"use client"; // Mandatory for Next.js App Router when using hooks and Framer Motion
+
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform, useSpring, useMotionValue, useMotionTemplate, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring, useMotionValue, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Menu, X, ArrowUpRight } from 'lucide-react';
 
-/* --- ARCHITECTURAL OVERVIEW ---
-  
-  1. STATE MANAGEMENT:
-     - Preloader: Controls the initial reveal sequence.
-     - Cursor: Global context for magnetic hover effects.
-     - Navigation: Full-screen overlay state.
-
-  2. SCROLL LOGIC:
-     - We use Framer Motion's `useScroll` for scroll-linked animations.
-     - Parallax effects are calculated relative to viewport position.
-
-  3. STYLING SYSTEM:
-     - Tailwind CSS for utility-first layout.
-     - Custom "Brutalist" tokens: border-b, uppercase, mono-spaced details.
-*/
+// --- TYPES ---
+interface Project {
+  title: string;
+  category: string;
+  img: string;
+}
 
 // --- CUSTOM HOOKS ---
-
-// Hook to track mouse position for the kinetic hero and cursor
 const useMousePosition = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   useEffect(() => {
@@ -35,19 +26,16 @@ const useMousePosition = () => {
 
 // --- COMPONENTS ---
 
-// 1. MAGNETIC CURSOR
-// A custom cursor that blends and expands when hovering over interactive elements.
 const CustomCursor = () => {
   const { x, y } = useMousePosition();
   const [hovered, setHovered] = useState(false);
   
-  // Smooth spring physics for the cursor movement to give it "weight"
   const springConfig = { damping: 25, stiffness: 400 };
   const cursorX = useSpring(useMotionValue(0), springConfig);
   const cursorY = useSpring(useMotionValue(0), springConfig);
 
   useEffect(() => {
-    cursorX.set(x - 16); // Center offset
+    cursorX.set(x - 16);
     cursorY.set(y - 16);
   }, [x, y, cursorX, cursorY]);
 
@@ -70,18 +58,13 @@ const CustomCursor = () => {
     >
       <motion.div 
         className="w-full h-full bg-white rounded-full"
-        animate={{ 
-          scale: hovered ? 2.5 : 1,
-          opacity: 1
-        }}
+        animate={{ scale: hovered ? 2.5 : 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
       />
     </motion.div>
   );
 };
 
-// 2. PRELOADER
-// Typography-based entrance that builds anticipation.
 const Preloader = ({ onComplete }: { onComplete: () => void }) => {
   const [count, setCount] = useState(0);
 
@@ -111,27 +94,18 @@ const Preloader = ({ onComplete }: { onComplete: () => void }) => {
       </div>
       
       <div className="text-9xl md:text-[12rem] font-bold leading-none tracking-tighter self-end overflow-hidden">
-        <motion.span
-          initial={{ y: "100%" }}
-          animate={{ y: "0%" }}
-          transition={{ duration: 1, ease: "easeOut" }}
-        >
+        <motion.span initial={{ y: "100%" }} animate={{ y: "0%" }} transition={{ duration: 1, ease: "easeOut" }}>
           {count}%
         </motion.span>
       </div>
 
       <div className="w-full h-[1px] bg-white/20 mt-4 relative overflow-hidden">
-        <motion.div 
-          className="absolute top-0 left-0 h-full bg-white"
-          style={{ width: `${count}%` }}
-        />
+        <motion.div className="absolute top-0 left-0 h-full bg-white" style={{ width: `${count}%` }} />
       </div>
     </motion.div>
   );
 };
 
-// 3. NAVIGATION OVERLAY
-// Full screen staggered menu.
 const Navigation = ({ isOpen, toggle }: { isOpen: boolean; toggle: () => void }) => {
   const links = ["WORK", "ABOUT", "SERVICES", "CONTACT"];
   
@@ -140,9 +114,7 @@ const Navigation = ({ isOpen, toggle }: { isOpen: boolean; toggle: () => void })
       {isOpen && (
         <motion.div
           className="fixed inset-0 bg-[#0a0a0a] z-[60] flex flex-col justify-center items-center text-white"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         >
           <div className="flex flex-col gap-4 text-center">
             {links.map((link, i) => (
@@ -177,8 +149,7 @@ const Navigation = ({ isOpen, toggle }: { isOpen: boolean; toggle: () => void })
           
           <motion.div 
             className="absolute bottom-12 left-12 font-mono text-sm opacity-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5, transition: { delay: 0.5 } }}
+            initial={{ opacity: 0 }} animate={{ opacity: 0.5, transition: { delay: 0.5 } }}
           >
             TOKYO — NEW YORK — PARIS
           </motion.div>
@@ -188,24 +159,111 @@ const Navigation = ({ isOpen, toggle }: { isOpen: boolean; toggle: () => void })
   );
 };
 
-// --- NEW ROLLING TEXT COMPONENT ---
+// --- RESTORED GLOBAL CLICK EXPLOSION EFFECT ---
+const Explosion = ({ x, y }: { x: number, y: number }) => {
+  const chars = ['*', '#', 'X', '—', '+', '0', '1', '/>'];
+  const particles = Array.from({ length: 12 });
+  
+  return (
+    <div className="fixed pointer-events-none z-[10000] mix-blend-difference" style={{ left: x, top: y }}>
+      {/* Snapping Crosshair Axes */}
+      <motion.div
+        className="absolute bg-white"
+        style={{ x: "-50%", y: "-50%", height: "2px" }}
+        initial={{ width: "0vw", opacity: 0.8 }}
+        animate={{ width: "150vw", opacity: 0 }}
+        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      />
+      <motion.div
+        className="absolute bg-white"
+        style={{ x: "-50%", y: "-50%", width: "2px" }}
+        initial={{ height: "0vh", opacity: 0.8 }}
+        animate={{ height: "150vh", opacity: 0 }}
+        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      />
+
+      {/* Expanding & Rotating Diamonds */}
+      {[1, 2, 3].map((i) => (
+        <motion.div
+          key={`ring-${i}`}
+          className="absolute border border-white"
+          style={{ x: "-50%", y: "-50%" }}
+          initial={{ width: 0, height: 0, opacity: 1, rotate: 45, borderWidth: "4px" }}
+          animate={{ width: 250 * i, height: 250 * i, opacity: 0, rotate: 90, borderWidth: "1px" }}
+          transition={{ duration: 0.8 + (i * 0.15), ease: [0.16, 1, 0.3, 1] }}
+        />
+      ))}
+      
+      {/* Typography / Code Scatter */}
+      {particles.map((_, i) => {
+        const angle = (i / particles.length) * Math.PI * 2;
+        const distance = Math.random() * 150 + 50;
+        const char = chars[Math.floor(Math.random() * chars.length)];
+        return (
+          <motion.div
+            key={`char-${i}`}
+            className="absolute text-white font-mono font-bold text-2xl leading-none"
+            style={{ x: "-50%", y: "-50%" }}
+            initial={{ x: "-50%", y: "-50%", opacity: 1, scale: 0, rotate: 0 }}
+            animate={{ 
+              x: `calc(-50% + ${Math.cos(angle) * distance}px)`, 
+              y: `calc(-50% + ${Math.sin(angle) * distance}px)`,
+              opacity: 0,
+              scale: Math.random() * 1.5 + 0.5,
+              rotate: Math.random() * 180 - 90
+            }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: Math.random() * 0.05 }}
+          >
+            {char}
+          </motion.div>
+        )
+      })}
+    </div>
+  );
+};
+
+const ClickEffect = () => {
+  const [explosions, setExplosions] = useState<{id: number, x: number, y: number}[]>([]);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      const id = Date.now() + Math.random();
+      setExplosions((prev) => [...prev, { id, x: e.clientX, y: e.clientY }]);
+      
+      setTimeout(() => {
+        setExplosions((prev) => prev.filter((exp) => exp.id !== id));
+      }, 1500);
+    };
+    
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
+  }, []);
+
+  return (
+    <>
+      {explosions.map((exp) => (
+        <Explosion key={exp.id} x={exp.x} y={exp.y} />
+      ))}
+    </>
+  );
+};
+
 const RollingText = ({ text, className = "" }: { text: string, className?: string }) => {
   return (
     <motion.div
-      className={`relative overflow-hidden flex whitespace-nowrap ${className}`}
-      whileHover="hover"
-      initial="initial"
-      data-hoverable="true"
+      className={`relative overflow-hidden flex whitespace-nowrap cursor-pointer ${className}`}
+      whileHover="hover" whileTap="tap" initial="initial" data-hoverable="true"
     >
       <div className="flex">
         {text.split("").map((char, i) => (
           <motion.span
             key={i}
             variants={{
-              initial: { y: 0 },
-              hover: { y: "-100%", transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1], delay: i * 0.03 } }
+              initial: { y: 0, scaleY: 1 },
+              hover: { y: "-100%", transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1], delay: i * 0.03 } },
+              tap: { y: "-100%", scaleY: 0.5, transition: { type: "spring", stiffness: 500 } }
             }}
-            className="inline-block"
+            className="inline-block origin-bottom"
           >
             {char === " " ? "\u00A0" : char}
           </motion.span>
@@ -216,10 +274,18 @@ const RollingText = ({ text, className = "" }: { text: string, className?: strin
           <motion.span
             key={i}
             variants={{
-              initial: { y: 0 },
-              hover: { y: "-100%", transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1], delay: i * 0.03 } }
+              initial: { y: 0, scaleY: 1, scaleX: 1, skewX: 0 },
+              hover: { y: "-100%", transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1], delay: i * 0.03 } },
+              tap: { 
+                y: "-100%", 
+                scaleY: 0.7, 
+                scaleX: 1.2,
+                skewX: i % 2 === 0 ? 15 : -15, 
+                color: "#ffffff",
+                transition: { type: "spring", stiffness: 500, damping: 10 } 
+              }
             }}
-            className="inline-block"
+            className="inline-block origin-bottom"
           >
             {char === " " ? "\u00A0" : char}
           </motion.span>
@@ -229,24 +295,22 @@ const RollingText = ({ text, className = "" }: { text: string, className?: strin
   );
 };
 
-// 4. KINETIC HERO
-// Large typography that reacts to mouse position (Parallax).
 const Hero = () => {
   const { x, y } = useMousePosition();
   const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1000;
   const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 1000;
   
-  // Create a gentle parallax effect relative to the center of the screen
-  const moveX = (x - windowWidth / 2) * 0.05;
-  const moveY = (y - windowHeight / 2) * 0.05;
+  const targetX = x === 0 && y === 0 ? windowWidth / 2 : x;
+  const targetY = x === 0 && y === 0 ? windowHeight / 2 : y;
   
-  // Added 3D rotation based on mouse position
-  const rotateX = (windowHeight / 2 - y) * 0.05; 
-  const rotateY = (x - windowWidth / 2) * 0.05;
+  const moveX = (targetX - windowWidth / 2) * 0.05;
+  const moveY = (targetY - windowHeight / 2) * 0.05;
+  
+  const rotateX = (windowHeight / 2 - targetY) * 0.05; 
+  const rotateY = (targetX - windowWidth / 2) * 0.05;
 
   return (
     <section className="relative h-screen flex flex-col justify-center px-6 md:px-12 overflow-hidden bg-white text-black" style={{ perspective: "1000px" }}>
-      {/* Background Grid */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:6rem_6rem] -z-10" />
 
       <motion.div 
@@ -257,19 +321,21 @@ const Hero = () => {
           <RollingText text="CREATIVE" className="w-fit" />
           
           <motion.div
-            className="relative block ml-[10vw] w-fit"
-            whileHover="hover"
-            initial="initial"
-            data-hoverable="true"
+            className="relative block ml-[10vw] w-fit cursor-pointer"
+            whileHover="hover" whileTap="tap" initial="initial" data-hoverable="true"
+            variants={{
+              tap: { scaleY: 0.75, scaleX: 1.05, skewX: -20, transition: { type: "spring", stiffness: 500, damping: 10 } }
+            }}
           >
             <span className="italic text-transparent text-stroke-white block">
               DEVELOPER
             </span>
             <motion.span
-              className="italic text-white absolute top-0 left-0 overflow-hidden whitespace-nowrap block"
+              className="italic text-white absolute top-0 left-0 overflow-hidden whitespace-nowrap block origin-left"
               variants={{
                 initial: { width: "0%" },
-                hover: { width: "100%", transition: { duration: 0.6, ease: [0.76, 0, 0.24, 1] } }
+                hover: { width: "100%", transition: { duration: 0.6, ease: [0.76, 0, 0.24, 1] } },
+                tap: { width: "100%", transition: { type: "spring", stiffness: 500 } }
               }}
             >
               DEVELOPER
@@ -293,18 +359,12 @@ const Hero = () => {
   );
 };
 
-// 5. PROJECT GALLERY
-// Horizontal scroll with hover reveal logic.
 const ProjectGallery = () => {
   const targetRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: targetRef,
-  });
-
-  // Transform vertical scroll into horizontal movement
+  const { scrollYProgress } = useScroll({ target: targetRef });
   const x = useTransform(scrollYProgress, [0, 1], ["0%", "-55%"]);
 
-  const projects = [
+  const projects: Project[] = [
     { title: "VOGUE REDESIGN", category: "Editorial", img: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2070&auto=format&fit=crop" },
     { title: "NIKE AIR CAMPAIGN", category: "E-Commerce", img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=2070&auto=format&fit=crop" },
     { title: "LUMIERE MUSEUM", category: "Cultural", img: "https://images.unsplash.com/photo-1518998053901-5348d3961a04?q=80&w=1974&auto=format&fit=crop" },
@@ -321,7 +381,6 @@ const ProjectGallery = () => {
                A curation of digital experiences crafted with precision, motion, and purpose.
              </p>
           </div>
-
           {projects.map((project, index) => (
             <ProjectCard key={index} project={project} />
           ))}
@@ -331,7 +390,7 @@ const ProjectGallery = () => {
   );
 };
 
-const ProjectCard = ({ project }: { project: any }) => {
+const ProjectCard = ({ project }: { project: Project }) => {
   return (
     <div className="group relative w-[70vw] md:w-[45vw] aspect-[4/3] bg-gray-900 overflow-hidden flex-shrink-0 cursor-pointer" data-hoverable="true">
       <img 
@@ -354,7 +413,6 @@ const ProjectCard = ({ project }: { project: any }) => {
   );
 };
 
-// 6. ABOUT / SERVICES (Brutalist Grid)
 const Services = () => {
   const services = ["Art Direction", "Web Design", "Creative Dev", "Brand Identity"];
   
@@ -387,12 +445,11 @@ const Services = () => {
   );
 };
 
-// 7. FOOTER
 const Footer = () => {
   return (
     <footer className="bg-[#0a0a0a] text-white py-24 px-6 md:px-12 flex flex-col justify-between h-[80vh]">
       <div className="text-[12vw] leading-none font-black tracking-tighter text-center md:text-left">
-        LET'S<br/>TALK
+        LET&apos;S<br/>TALK
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-12 font-mono text-sm uppercase">
@@ -415,8 +472,6 @@ const Footer = () => {
   );
 };
 
-// --- MAIN LAYOUT COMPONENT ---
-
 export default function Portfolio() {
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -424,17 +479,9 @@ export default function Portfolio() {
   return (
     <div className={`min-h-screen bg-white selection:bg-black selection:text-white ${loading ? 'overflow-hidden h-screen' : ''}`}>
       <style>{`
-        /* Custom utility for text stroke */
-        .text-stroke-black {
-          -webkit-text-stroke: 1px black;
-        }
-        .text-stroke-white {
-          -webkit-text-stroke: 1px white;
-        }
-        body {
-          cursor: none; /* Hide default cursor */
-        }
-        /* Restore cursor on touch devices */
+        .text-stroke-black { -webkit-text-stroke: 1px black; }
+        .text-stroke-white { -webkit-text-stroke: 1px white; }
+        body { cursor: none; }
         @media (pointer: coarse) {
           body { cursor: auto; }
           .custom-cursor { display: none; }
@@ -445,18 +492,17 @@ export default function Portfolio() {
         {loading && <Preloader onComplete={() => setLoading(false)} />}
       </AnimatePresence>
 
+      <ClickEffect />
+
       <div className="custom-cursor block">
         <CustomCursor />
       </div>
 
       <Navigation isOpen={menuOpen} toggle={() => setMenuOpen(!menuOpen)} />
 
-      {/* Header / Nav Button */}
       <motion.header 
         className="fixed top-0 left-0 w-full p-6 md:p-12 flex justify-between items-center z-50 mix-blend-difference text-white pointer-events-none"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 2.5, duration: 1 }}
+        initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 2.5, duration: 1 }}
       >
         <div className="font-bold text-xl tracking-tighter pointer-events-auto" data-hoverable="true">
           M/D
