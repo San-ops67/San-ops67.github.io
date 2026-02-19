@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KINETIC | Immersive WebGL Experience</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts: Syne (Headlines) & Space Mono (Technical) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <style>
+        :root {
+            --bg-color: #050505;
+            --text-color: #f0f0f0;
+            --accent-color: #ccff00; /* Cyber Lime */
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Syne', sans-serif;
+            overflow-x: hidden;
+            /* Na mobilu vrátíme kurzor, na desktopu skryjeme pro custom kurzor */
+            cursor: auto; 
+        }
+
+        @media (pointer: fine) {
+            body {
+                cursor: none;
+            }
+        }
+
+        /* Lenis Smooth Scroll Setup */
+        html.lenis { height: auto; }
+        .lenis.lenis-smooth { scroll-behavior: auto; }
+        .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+        .lenis.lenis-stopped { overflow: hidden; }
+
+        /* Typography Utilities */
+        .font-mono { font-family: 'Space Mono', monospace; }
+        .text-accent { color: var(--accent-color); }
+        
+        /* Custom Cursor - Hidden on Touch Devices */
+        #cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--text-color);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: difference;
+            transition: width 0.3s, height 0.3s, background-color 0.3s;
+            display: none; /* Default hidden */
+        }
+        
+        @media (pointer: fine) {
+            #cursor { display: block; }
+            #cursor.hovered {
+                width: 50px;
+                height: 50px;
+                background-color: var(--text-color);
+                border-color: transparent;
+            }
+        }
+
+        /* 3D Canvas Background */
+        #webgl-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Text Reveal Mask */
+        .reveal-text {
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+            line-height: 1;
+        }
+        .char {
+            display: inline-block;
+            transform: translateY(110%);
+            transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        /* Grid Lines */
+        .grid-line {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.05);
+            z-index: -1;
+        }
+
+        /* Gallery Layout: Flex on Desktop, Column on Mobile */
+        .gallery-wrapper {
+            overflow: hidden;
+            width: 100%;
+        }
+        .gallery-container {
+            display: flex;
+            /* Mobile default: Column */
+            flex-direction: column; 
+            width: 100%;
+            height: auto;
+        }
+        .gallery-item {
+            width: 100%;
+            height: 80vh; /* Mobile height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+        }
+
+        /* Desktop specific gallery styles */
+        @media (min-width: 1024px) {
+            .gallery-container {
+                flex-direction: row;
+                width: 400%; /* 4 sections */
+                height: 100vh;
+            }
+            .gallery-item {
+                width: 100vw;
+                height: 100%;
+                border-right: 1px solid rgba(255,255,255,0.1);
+                border-bottom: none;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-[#ccff00] selection:text-black">
+
+    <!-- Custom Cursor -->
+    <div id="cursor"></div>
+
+    <!-- WebGL Canvas -->
+    <div id="webgl-container"></div>
+
+    <!-- UI Overlay / Content -->
+    <div id="smooth-wrapper">
+        <div id="smooth-content">
+            
+            <!-- Navigation -->
+            <nav class="fixed top-0 left-0 w-full p-6 md:p-8 flex justify-between items-center z-50 mix-blend-difference">
+                <div class="font-mono text-sm tracking-widest magnetic" data-strength="20">BUREAU™</div>
+                <div class="flex gap-4 md:gap-8 font-mono text-[10px] md:text-xs uppercase">
+                    <a href="#" class="hover:text-accent transition-colors magnetic" data-strength="15">Work</a>
+                    <a href="#" class="hover:text-accent transition-colors magnetic" data-strength="15">Agency</a>
+                    <a href="#" class="hover:text-accent transition-colors magnetic" data-strength="15">Contact</a>
+                </div>
+            </nav>
+
+            <!-- Grid Lines Background -->
+            <div class="fixed inset-0 pointer-events-none z-0">
+                <div class="grid-line w-px h-full left-[10%]"></div>
+                <div class="grid-line w-px h-full left-[90%]"></div>
+                <div class="grid-line w-full h-px top-[50%]"></div>
+            </div>
+
+            <!-- Hero Section -->
+            <section class="h-screen w-full flex flex-col justify-center items-center relative z-10" id="hero">
+                <div class="absolute top-24 left-6 md:top-1/4 md:left-10 font-mono text-[10px] md:text-xs text-gray-500 overflow-hidden">
+                    <div class="reveal-stagger">EST. 2024</div>
+                    <div class="reveal-stagger">DIGITAL ARTIFACTS</div>
+                </div>
+                
+                <h1 class="text-[16vw] md:text-[14vw] font-bold leading-[0.85] tracking-tighter text-center mix-blend-exclusion z-20 pointer-events-none mt-10 md:mt-0">
+                    <div class="reveal-title">KINETIC</div>
+                    <div class="reveal-title text-stroke text-transparent" style="-webkit-text-stroke: 1px rgba(255,255,255,0.2);">ENERGY</div>
+                </h1>
+
+                <div class="absolute bottom-10 right-6 md:right-10 flex flex-col items-end gap-2 font-mono text-[10px] md:text-xs">
+                    <div class="w-16 md:w-24 h-px bg-accent-color origin-right animate-pulse bg-[#ccff00]"></div>
+                    <span>SCROLL TO EXPLORE</span>
+                </div>
+            </section>
+
+            <!-- About Section -->
+            <section class="min-h-screen w-full flex items-center justify-center py-24 relative z-20">
+                <div class="max-w-4xl mx-auto px-6 text-center">
+                    <p class="font-mono text-accent text-xs md:text-sm mb-8 reveal-fade">[ THE CONCEPT ]</p>
+                    <h2 class="text-3xl md:text-6xl font-bold leading-tight reveal-lines">
+                        We craft digital experiences that <span class="text-gray-500">defy gravity</span>. Merging technical precision with abstract art to create the next generation of the web.
+                    </h2>
+                </div>
+            </section>
+
+            <!-- Horizontal Gallery Section -->
+            <section class="gallery-wrapper relative z-30" id="gallery">
+                <div class="gallery-container">
+                    <!-- Project 1 -->
+                    <div class="gallery-item flex-col bg-black/50 backdrop-blur-sm">
+                        <span class="font-mono text-6xl md:text-9xl opacity-10 absolute top-6 left-6 md:top-10 md:left-10">01</span>
+                        <h3 class="text-4xl md:text-6xl font-bold mb-4">NEBULA</h3>
+                        <p class="font-mono text-xs md:text-sm text-gray-400">WEBGL INTERACTION</p>
+                        <button class="mt-8 px-6 py-2 md:px-8 md:py-3 border border-white/20 rounded-full font-mono text-[10px] md:text-xs hover:bg-[#ccff00] hover:text-black hover:border-[#ccff00] transition-all magnetic" data-strength="30">VIEW CASE</button>
+                    </div>
+                    <!-- Project 2 -->
+                    <div class="gallery-item flex-col bg-black/50 backdrop-blur-sm">
+                        <span class="font-mono text-6xl md:text-9xl opacity-10 absolute top-6 left-6 md:top-10 md:left-10">02</span>
+                        <h3 class="text-4xl md:text-6xl font-bold mb-4">VOID</h3>
+                        <p class="font-mono text-xs md:text-sm text-gray-400">BRAND IDENTITY</p>
+                        <button class="mt-8 px-6 py-2 md:px-8 md:py-3 border border-white/20 rounded-full font-mono text-[10px] md:text-xs hover:bg-[#ccff00] hover:text-black hover:border-[#ccff00] transition-all magnetic" data-strength="30">VIEW CASE</button>
+                    </div>
+                    <!-- Project 3 -->
+                    <div class="gallery-item flex-col bg-black/50 backdrop-blur-sm">
+                        <span class="font-mono text-6xl md:text-9xl opacity-10 absolute top-6 left-6 md:top-10 md:left-10">03</span>
+                        <h3 class="text-4xl md:text-6xl font-bold mb-4">ECHO</h3>
+                        <p class="font-mono text-xs md:text-sm text-gray-400">CREATIVE CODING</p>
+                        <button class="mt-8 px-6 py-2 md:px-8 md:py-3 border border-white/20 rounded-full font-mono text-[10px] md:text-xs hover:bg-[#ccff00] hover:text-black hover:border-[#ccff00] transition-all magnetic" data-strength="30">VIEW CASE</button>
+                    </div>
+                    <!-- Project 4 -->
+                    <div class="gallery-item flex-col bg-black/50 backdrop-blur-sm">
+                        <span class="font-mono text-6xl md:text-9xl opacity-10 absolute top-6 left-6 md:top-10 md:left-10">04</span>
+                        <h3 class="text-4xl md:text-6xl font-bold mb-4">FLUX</h3>
+                        <p class="font-mono text-xs md:text-sm text-gray-400">IMMERSIVE COMMERCE</p>
+                        <button class="mt-8 px-6 py-2 md:px-8 md:py-3 border border-white/20 rounded-full font-mono text-[10px] md:text-xs hover:bg-[#ccff00] hover:text-black hover:border-[#ccff00] transition-all magnetic" data-strength="30">VIEW CASE</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <section class="h-[60vh] md:h-[70vh] flex flex-col justify-between p-6 md:p-12 border-t border-white/10 relative bg-[#050505] z-30">
+                <div class="flex justify-between items-start">
+                    <div class="font-mono text-[10px] md:text-xs text-gray-500">AVAILABLE FOR FREELANCE</div>
+                    <div class="font-mono text-[10px] md:text-xs text-gray-500">2024 ©</div>
+                </div>
+                
+                <div class="self-center text-center">
+                    <a href="mailto:hello@kinetic.com" class="text-[12vw] md:text-[8vw] font-bold hover:text-[#ccff00] transition-colors duration-500 magnetic inline-block" data-strength="50">LET'S TALK</a>
+                </div>
+
+                <div class="flex flex-col md:flex-row justify-between items-center md:items-end font-mono text-[10px] md:text-xs gap-4">
+                    <div class="flex gap-6">
+                        <a href="#" class="hover:text-[#ccff00]">INSTAGRAM</a>
+                        <a href="#" class="hover:text-[#ccff00]">TWITTER</a>
+                        <a href="#" class="hover:text-[#ccff00]">LINKEDIN</a>
+                    </div>
+                    <div>PRAGUE, CZ</div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.0.45/dist/lenis.min.js"></script>
+    
+    <script>
+        // --- DETEKCE MOBILU ---
+        const isMobile = window.innerWidth < 1024;
+
+        // --- 1. SETUP & INIT ---
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Smooth Scroll (Lenis)
+        if (typeof Lenis !== 'undefined') {
+            const lenis = new Lenis({
+                duration: 1.2,
+                easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                direction: 'vertical',
+                gestureDirection: 'vertical',
+                smooth: true,
+                mouseMultiplier: 1,
+                smoothTouch: false,
+                touchMultiplier: 2,
+            });
+
+            function raf(time) {
+                lenis.raf(time);
+                requestAnimationFrame(raf);
+            }
+            requestAnimationFrame(raf);
+        } else {
+            console.error("Lenis library failed to load.");
+            document.body.style.overflow = "auto";
+        }
+
+        // --- 2. THREE.JS SCENE (The "Blob") ---
+        const initThree = () => {
+            const container = document.getElementById('webgl-container');
+            const scene = new THREE.Scene();
+            
+            // Camera
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 2.5;
+
+            // Renderer - Optimalizace pixel ratio pro mobily
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            // Na mobilu max 1.5 pro výkon, na desktopu max 2 pro kvalitu
+            const maxPixelRatio = isMobile ? 1.5 : 2;
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxPixelRatio));
+            container.appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0xccff00, 5.0, 100);
+            pointLight.position.set(5, 5, 5);
+            scene.add(pointLight);
+
+            const pointLight2 = new THREE.PointLight(0x4444ff, 4.0, 100);
+            pointLight2.position.set(-5, -5, 5);
+            scene.add(pointLight2);
+
+            // Object: The Morphing Sphere Geometry
+            // Optimalizace segmentů: 32 pro mobil, 60 pro desktop
+            const geoSegments = isMobile ? 32 : 60;
+            const geometry = new THREE.IcosahedronGeometry(1, geoSegments); 
+            
+            const originalPositions = geometry.attributes.position.array.slice();
+            geometry.userData.originalPositions = originalPositions;
+
+            // Material: Dark Liquid Metal
+            const material = new THREE.MeshStandardMaterial({
+                color: 0x050505,    
+                metalness: 0.9,     
+                roughness: 0.1,     
+                wireframe: false,
+                flatShading: false,
+            });
+
+            const blob = new THREE.Mesh(geometry, material);
+            scene.add(blob);
+
+            // --- 3. NEZÁVISLÉ SVĚTLUŠKY (Fireflies) ---
+            
+            const getCircleTexture = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 32;
+                canvas.height = 32;
+                const ctx = canvas.getContext('2d');
+                
+                const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 1)'); 
+                gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.5)'); 
+                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)'); 
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, 32, 32);
+                
+                const texture = new THREE.CanvasTexture(canvas);
+                return texture;
+            };
+
+            // Optimalizace počtu částic: 25 pro mobil, 60 pro desktop
+            const firefliesCount = isMobile ? 25 : 60;
+            const firefliesGeometry = new THREE.BufferGeometry();
+            const firefliesPositions = new Float32Array(firefliesCount * 3);
+            const firefliesRandomness = new Float32Array(firefliesCount); 
+            const firefliesScales = new Float32Array(firefliesCount); 
+
+            for(let i = 0; i < firefliesCount; i++) {
+                const radius = 1.2 + Math.random() * 4;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                
+                firefliesPositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                firefliesPositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                firefliesPositions[i * 3 + 2] = radius * Math.cos(phi);
+
+                firefliesRandomness[i] = Math.random();
+                firefliesScales[i] = Math.random();
+            }
+
+            firefliesGeometry.setAttribute('position', new THREE.BufferAttribute(firefliesPositions, 3));
+            firefliesGeometry.setAttribute('aRandom', new THREE.BufferAttribute(firefliesRandomness, 1));
+            firefliesGeometry.setAttribute('aScale', new THREE.BufferAttribute(firefliesScales, 1));
+
+            const firefliesMaterial = new THREE.PointsMaterial({
+                color: 0xccff00,
+                size: isMobile ? 0.05 : 0.08, // Menší velikost na mobilu
+                map: getCircleTexture(), 
+                transparent: true,
+                opacity: 0.9,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            const fireflies = new THREE.Points(firefliesGeometry, firefliesMaterial);
+            scene.add(fireflies);
+
+
+            // Mouse interaction logic
+            let mouseX = 0;
+            let mouseY = 0;
+            let targetX = 0;
+            let targetY = 0;
+
+            const windowHalfX = window.innerWidth / 2;
+            const windowHalfY = window.innerHeight / 2;
+
+            document.addEventListener('mousemove', (event) => {
+                mouseX = (event.clientX - windowHalfX);
+                mouseY = (event.clientY - windowHalfY);
+            });
+
+            // Clock for animation
+            const clock = new THREE.Clock();
+
+            // --- ANIMATION LOOP ---
+            const animate = () => {
+                const time = clock.getElapsedTime();
+                
+                targetX = mouseX * 0.001;
+                targetY = mouseY * 0.001;
+
+                // Rotace blobu
+                blob.rotation.y += 0.05 * (targetX - blob.rotation.y);
+                blob.rotation.x += 0.05 * (targetY - blob.rotation.x);
+                blob.rotation.z += 0.002;
+
+                // Animace Světlušek
+                const ffPositions = firefliesGeometry.attributes.position.array;
+                const ffCount = firefliesGeometry.attributes.position.count;
+                
+                for(let i = 0; i < ffCount; i++) {
+                    const rand = firefliesRandomness[i];
+                    ffPositions[i*3 + 1] += Math.sin(time * 0.5 + rand * 10) * 0.003;
+                    ffPositions[i*3] += Math.cos(time * 0.3 + rand * 10) * 0.002;
+                }
+                firefliesGeometry.attributes.position.needsUpdate = true;
+                
+                fireflies.rotation.y = time * 0.05;
+
+                // Vertex Morphing Logic
+                const positions = geometry.attributes.position;
+                const origPos = geometry.userData.originalPositions;
+                const count = positions.count;
+
+                const scrollY = window.scrollY;
+                const scrollInfluence = 1 + (scrollY * 0.0005); 
+                const frequency = 2.0; 
+                const amplitude = 0.2 * scrollInfluence;
+
+                for (let i = 0; i < count; i++) {
+                    const px = origPos[i * 3];
+                    const py = origPos[i * 3 + 1];
+                    const pz = origPos[i * 3 + 2];
+
+                    const noise = Math.sin(px * frequency + time) * Math.cos(py * frequency + time) * Math.sin(pz * frequency + time);
+                    const scale = 1 + noise * amplitude;
+
+                    positions.setXYZ(i, px * scale, py * scale, pz * scale);
+                }
+                
+                geometry.attributes.position.needsUpdate = true;
+                geometry.computeVertexNormals();
+
+                renderer.render(scene, camera);
+                requestAnimationFrame(animate);
+            };
+
+            animate();
+
+            // Handle Resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            // GSAP 3D Interaction
+            gsap.to(blob.rotation, {
+                scrollTrigger: {
+                    trigger: "body",
+                    start: "top top",
+                    end: "bottom bottom",
+                    scrub: 1
+                },
+                x: Math.PI * 2,
+                y: Math.PI * 2
+            });
+            
+            // Optimalizace pohybu blobu pro mobil
+            // Na desktopu jde doleva (x: -1.5), na mobilu ho necháme uprostřed nebo jen mírně posuneme
+            const moveX = isMobile ? 0 : -1.5;
+            
+            gsap.to(blob.position, {
+                scrollTrigger: {
+                    trigger: "#hero",
+                    start: "bottom top",
+                    end: "bottom bottom",
+                    scrub: 1
+                },
+                x: moveX
+            });
+        };
+
+        initThree();
+
+        // --- 3. UI ANIMATIONS (GSAP) ---
+        const splitText = () => {
+            const titles = document.querySelectorAll('.reveal-title');
+            titles.forEach(title => {
+                const text = title.innerText;
+                title.innerHTML = text.split('').map(char => `<span class="char inline-block">${char}</span>`).join('');
+            });
+        };
+        splitText();
+
+        const tl = gsap.timeline();
+
+        tl.to('.char', {
+            y: 0,
+            stagger: 0.05,
+            delay: 0.2,
+            duration: 0.8,
+            ease: "back.out(1.7)"
+        })
+        .from('.reveal-stagger', {
+            y: 20,
+            opacity: 0,
+            duration: 0.8,
+            stagger: 0.1,
+            ease: "power3.out"
+        }, "-=0.5");
+
+        const aboutLines = document.querySelector('.reveal-lines');
+        const words = aboutLines.innerText.split(' ');
+        aboutLines.innerHTML = words.map(word => `<span class="inline-block mr-2 opacity-20 transition-opacity duration-500 hover:opacity-100">${word}</span>`).join('');
+
+        gsap.to('.reveal-lines span', {
+            scrollTrigger: {
+                trigger: '.reveal-lines',
+                start: "top 80%",
+                end: "bottom 20%",
+                scrub: 1
+            },
+            opacity: 1,
+            stagger: 0.1,
+            color: "#f0f0f0"
+        });
+
+        // Horizontal Gallery Scroll (Pouze pro Desktop)
+        // ScrollTrigger.matchMedia handles responsive animations
+        ScrollTrigger.matchMedia({
+            // Desktop
+            "(min-width: 1024px)": function() {
+                const sections = gsap.utils.toArray(".gallery-item");
+                gsap.to(sections, {
+                    xPercent: -100 * (sections.length - 1),
+                    ease: "none",
+                    scrollTrigger: {
+                        trigger: ".gallery-wrapper",
+                        pin: true,
+                        scrub: 1,
+                        snap: 1 / (sections.length - 1),
+                        end: () => "+=" + document.querySelector(".gallery-wrapper").offsetWidth
+                    }
+                });
+            }
+            // Mobile: No GSAP animation for gallery, it flows naturally via CSS
+        });
+
+        // Micro-interactions (vždy aktivní při detekci myši)
+        const cursor = document.getElementById('cursor');
+        const moveCursor = (e) => {
+            gsap.to(cursor, {
+                x: e.clientX,
+                y: e.clientY,
+                duration: 0.1,
+                ease: "power2.out"
+            });
+        };
+        window.addEventListener('mousemove', moveCursor);
+
+        const hoverables = document.querySelectorAll('a, button, .magnetic');
+        hoverables.forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
+        });
+
+        const magnets = document.querySelectorAll('.magnetic');
+        magnets.forEach((magnet) => {
+            magnet.addEventListener('mousemove', (e) => {
+                const position = magnet.getBoundingClientRect();
+                const x = e.clientX - position.left - position.width / 2;
+                const y = e.clientY - position.top - position.height / 2;
+                const strength = magnet.getAttribute('data-strength') || 20;
+
+                gsap.to(magnet, {
+                    x: x * 0.5,
+                    y: y * 0.5,
+                    duration: 0.4,
+                    ease: "power3.out"
+                });
+            });
+
+            magnet.addEventListener('mouseleave', (e) => {
+                gsap.to(magnet, {
+                    x: 0,
+                    y: 0,
+                    duration: 0.7,
+                    ease: "elastic.out(1, 0.3)"
+                });
+            });
+        });
+    </script>
+</body>
+</html>
