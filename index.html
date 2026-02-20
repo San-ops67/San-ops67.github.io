@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moje Webové Projekty</title>
+    <title>Interaktivní Galerie a Laboratoř</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,213 +11,925 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- Custom Styles for specific transitions -->
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <!-- CSS pro pokročilé animace a kurzor -->
     <style>
         body {
-            background-color: #0a0a0a;
-            color: #e4e4e7;
-        }
-        
-        /* Floating preview base styles */
-        #floating-preview {
-            transition: opacity 0.3s ease;
-            will-change: transform, opacity;
-        }
-        
-        /* Smooth gradient transition */
-        #preview-gradient {
-            transition: background 0.3s ease;
+            background-color: #000;
+            color: #fff;
+            overflow-x: hidden; 
+            font-family: 'Inter', sans-serif;
+            cursor: none; /* Skrytý výchozí kurzor */
         }
 
-        /* Hide preview on small screens as per design */
-        @media (max-width: 768px) {
-            #floating-preview {
-                display: none !important;
-            }
+        /* Mix-blend-mode pro hlavní nadpis */
+        .blend-title {
+            mix-blend-mode: overlay;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        /* Logika Akordeonu */
+        .accordion-container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            padding: 1rem;
+            gap: 0.5rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .accordion-item {
+            flex: 1;
+            position: relative;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            background-color: #111;
+            transition: flex 0.8s cubic-bezier(0.25, 1, 0.2, 1), background-color 0.5s ease;
+        }
+
+        .accordion-item.active {
+            flex: 12;
+        }
+
+        .vertical-title {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+            white-space: nowrap;
+            transition: opacity 0.4s ease;
+        }
+
+        .accordion-item.active .vertical-title {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .expanded-content {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.25, 1, 0.2, 1);
+            transition-delay: 0s;
+            pointer-events: none;
+        }
+
+        .accordion-item.active .expanded-content {
+            opacity: 1;
+            transform: translateY(0);
+            transition-delay: 0.3s;
+            pointer-events: auto;
+        }
+
+        .iframe-wrapper {
+            opacity: 0;
+            transition: opacity 1s ease 0.4s;
+        }
+
+        .accordion-item.active .iframe-wrapper {
+            opacity: 1;
+        }
+
+        .parallax-target {
+            transition: transform 0.2s ease-out;
+            will-change: transform;
+        }
+
+        /* Indikátor načítání */
+        .loader-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            transform: translateX(-100%);
+            z-index: 40;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .accordion-item.loading .loader-bar {
+            opacity: 1;
+            animation: loadingSwipe 1.5s infinite ease-in-out;
+        }
+        @keyframes loadingSwipe {
+            100% { transform: translateX(100%); }
+        }
+
+        /* --- VIZUÁLNÍ EFEKTY (ŠUM, VIGNETA, SFÉRY) --- */
+        .noise-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 9998;
+            opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            animation: noiseMove 8s steps(10) infinite;
+        }
+        @keyframes noiseMove {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-1%, -1%); }
+            20% { transform: translate(1%, 1%); }
+            30% { transform: translate(-2%, -2%); }
+            40% { transform: translate(2%, 2%); }
+            50% { transform: translate(-1%, 2%); }
+            60% { transform: translate(2%, -1%); }
+            70% { transform: translate(-2%, 1%); }
+            80% { transform: translate(1%, -2%); }
+            90% { transform: translate(-1%, -1%); }
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 9997;
+            box-shadow: inset 0 0 200px rgba(0,0,0,0.9);
+        }
+
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(5vw, -5vh) scale(1.1); }
+            66% { transform: translate(-3vw, 4vh) scale(0.9); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+        
+        .ambient-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            pointer-events: none;
+            z-index: 1;
+            animation: floatOrb 20s infinite ease-in-out;
+            opacity: 0.4;
+        }
+
+        /* --- KURZOR --- */
+        #custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: width 0.3s, height 0.3s, background 0.3s, transform 0.1s;
+        }
+        
+        #custom-cursor.hovering-link {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 1);
+            color: black;
+            mix-blend-mode: difference;
+            backdrop-filter: none;
+        }
+
+        /* --- FIDGET ELEMENTY CSS --- */
+        
+        .fidget-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+        }
+
+        .fidget-label {
+            position: absolute;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.4);
+            pointer-events: none;
+            font-family: 'Syncopate', sans-serif;
+            text-align: center;
+            z-index: 10;
+        }
+
+        /* 1. Magnetická Mřížka */
+        .dot-grid-item {
+            width: 4px;
+            height: 4px;
+            background-color: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            position: absolute;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.3s;
+            will-change: transform;
+        }
+
+        /* 2. Elastické Struny */
+        .elastic-string {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.4);
+            stroke-width: 2;
+            stroke-linecap: round;
+            transition: stroke 0.3s;
+        }
+        .string-container:hover .elastic-string {
+            stroke: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Canvas Fidgety */
+        .full-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
         }
     </style>
 </head>
-<body class="min-h-screen font-sans selection:bg-white selection:text-black overflow-x-hidden relative">
+<body class="bg-[#050505]">
 
-    <!-- Background ambient light -->
-    <div class="fixed top-0 left-0 w-full h-full pointer-events-none opacity-20 z-0">
-        <div class="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-900/30 blur-[120px]"></div>
-        <div class="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-900/30 blur-[120px]"></div>
+    <!-- EFEKTY V POZADÍ -->
+    <div class="noise-overlay"></div>
+    <div class="vignette"></div>
+    
+    <div class="ambient-orb bg-blue-600/30 w-[40vw] h-[40vw] -top-[10%] -left-[10%] delay-0"></div>
+    <div class="ambient-orb bg-purple-600/20 w-[50vw] h-[50vw] -bottom-[20%] -right-[10%]" style="animation-delay: -5s; animation-duration: 25s;"></div>
+    <div class="ambient-orb bg-emerald-600/10 w-[30vw] h-[30vw] top-[40%] left-[40%]" style="animation-delay: -10s; animation-duration: 18s;"></div>
+
+    <!-- KURZOR -->
+    <div id="custom-cursor">Zobrazit</div>
+
+    <!-- HLAVNÍ NADPIS -->
+    <h1 id="main-title" class="blend-title absolute top-8 left-8 text-7xl md:text-9xl font-bold uppercase tracking-tighter opacity-40 parallax-target" style="font-family: 'Syncopate', sans-serif;">
+        Archiv<br>2026
+    </h1>
+
+    <!-- 1. SEKCE: Akordeon Galerie -->
+    <div id="accordion" class="accordion-container">
+        <!-- Generováno přes JS -->
     </div>
 
-    <!-- Floating Image Preview -->
-    <div id="floating-preview" class="fixed top-0 left-0 w-[300px] h-[200px] pointer-events-none z-50 rounded-xl overflow-hidden shadow-2xl opacity-0">
-        <div id="preview-gradient" class="w-full h-full bg-gradient-to-br p-6 flex flex-col justify-between">
-            <div class="flex justify-between items-start">
-                <i data-lucide="globe" class="text-white/50 w-6 h-6"></i>
-                <span id="preview-number" class="text-white/80 font-mono text-sm"></span>
-            </div>
-            <div class="text-white">
-                <h3 id="preview-title" class="text-2xl font-bold tracking-tight"></h3>
-                <p id="preview-category" class="text-white/80 text-sm mt-1"></p>
-            </div>
-        </div>
-    </div>
-
-    <div class="max-w-7xl mx-auto px-6 py-20 relative z-10">
+    <!-- 2. SEKCE: Laboratoř (Interaktivní Fidget Elementy) -->
+    <section class="min-h-screen w-full relative z-20 flex flex-col items-center justify-center py-32 px-8 border-t border-white/5 overflow-hidden">
         
-        <!-- Header Section -->
-        <header class="mb-24 flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-zinc-800 pb-12">
-            <div class="max-w-2xl">
-                <div class="flex items-center gap-3 mb-6">
-                    <i data-lucide="sparkles" class="w-5 h-5 text-zinc-400"></i>
-                    <span class="text-zinc-400 uppercase tracking-widest text-sm font-semibold">Archiv / 2026</span>
-                </div>
-                <h1 class="text-5xl md:text-7xl font-bold tracking-tighter text-white mb-6 leading-tight">
-                    Moje Webové <br class="hidden md:block" /> Projekty.
-                </h1>
-                <p class="text-lg text-zinc-400 leading-relaxed max-w-xl">
-                    Kolekce interaktivních digitálních zážitků, webových aplikací a kreativních konceptů. Prozkoumejte nejnovější práce.
-                </p>
-            </div>
-            <div class="flex items-center gap-4 text-zinc-500">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="code-2" class="w-4 h-4"></i>
-                    <span class="text-sm">HTML & JS</span>
-                </div>
-                <span>/</span>
-                <div class="flex items-center gap-2">
-                    <i data-lucide="layout" class="w-4 h-4"></i>
-                    <span id="project-count" class="text-sm">0 Projektů</span>
-                </div>
-            </div>
-        </header>
-
-        <!-- Project List -->
-        <div id="project-list" class="flex flex-col border-t border-zinc-800">
-            <!-- Projects will be injected here via JavaScript -->
+        <div class="text-center mb-16">
+            <h2 class="text-4xl md:text-6xl font-bold uppercase tracking-tighter opacity-50" style="font-family: 'Syncopate', sans-serif;">
+                Laboratoř
+            </h2>
+            <p class="text-white/40 mt-4 font-mono text-sm uppercase tracking-widest">Awwwards Interaktivní Elementy</p>
         </div>
 
-        <!-- Footer -->
-        <footer class="mt-32 pt-12 border-t border-zinc-800 flex flex-col md:flex-row justify-between items-center text-zinc-500 text-sm gap-4">
-            <p>© 2026 Moje Portfolio. Všechna práva vyhrazena.</p>
-            <div class="flex gap-6">
-                <a href="#" class="hover:text-white transition-colors">GitHub</a>
-                <a href="#" class="hover:text-white transition-colors">LinkedIn</a>
-                <a href="#" class="hover:text-white transition-colors">Twitter</a>
+        <!-- Mřížka pro 6 elementů -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-7xl auto-rows-[400px]">
+            
+            <!-- Fidget 1: Magnetická Mřížka -->
+            <div class="fidget-box w-full h-full cursor-crosshair interactive-element" id="grid-container">
+                <div id="dots-wrapper" class="absolute inset-0 w-full h-full"></div>
+                <div class="fidget-label">Magnetická Mřížka</div>
             </div>
-        </footer>
 
-    </div>
+            <!-- Fidget 2: Elastické Struny -->
+            <div class="fidget-box w-full h-full string-container interactive-element flex items-center justify-center" id="string-container">
+                <svg id="strings-svg" class="w-full h-full overflow-visible" viewBox="0 0 400 400" preserveAspectRatio="none">
+                    <!-- Struny generované pomocí JS -->
+                </svg>
+                <div class="fidget-label">Elastické Struny</div>
+            </div>
+
+            <!-- Fidget 3: Kvantový Roj (Canvas) -->
+            <div class="fidget-box w-full h-full interactive-element" id="swarm-container">
+                <canvas id="swarm-canvas" class="full-canvas"></canvas>
+                <div class="fidget-label">Kvantový Roj</div>
+            </div>
+
+            <!-- Fidget 4: Černá Díra (Canvas) -->
+            <div class="fidget-box w-full h-full interactive-element" id="bh-container">
+                <canvas id="bh-canvas" class="full-canvas"></canvas>
+                <div class="fidget-label">Černá Díra</div>
+            </div>
+
+            <!-- Fidget 5: Kinetická Chapadla (Canvas) -->
+            <div class="fidget-box w-full h-full interactive-element" id="tentacle-container">
+                <canvas id="tentacle-canvas" class="full-canvas"></canvas>
+                <div class="fidget-label">Kinetická Chapadla</div>
+            </div>
+
+            <!-- Fidget 6: Kinetická Sféra (Spinning 3D Sphere) -->
+            <div class="fidget-box w-full h-full interactive-element" id="sphere-container">
+                <canvas id="sphere-canvas" class="full-canvas"></canvas>
+                <div class="fidget-label">Kinetická Sféra</div>
+            </div>
+
+        </div>
+    </section>
 
     <script>
-        // Project Data
+        // Data o projektech
         const projects = [
-            { id: 1, title: 'Web 1', url: 'https://san-ops67.github.io/1/', category: 'E-commerce', desc: 'Moderní nákupní platforma s důrazem na UX.', gradient: 'from-pink-500 via-red-500 to-yellow-500' },
-            { id: 2, title: 'Web 2', url: 'https://san-ops67.github.io/2/', category: 'Portfolio', desc: 'Kreativní prezentace pro digitální umělce.', gradient: 'from-blue-600 via-cyan-400 to-teal-300' },
-            { id: 3, title: 'Web 3', url: 'https://san-ops67.github.io/3/', category: 'WebGL Experience', desc: 'Interaktivní 3D zážitek v prohlížeči.', gradient: 'from-indigo-900 via-purple-700 to-pink-500' },
-            { id: 4, title: 'Web 4', url: 'https://san-ops67.github.io/4/', category: 'SaaS Platform', desc: 'Dashboard a správa dat pro B2B sektor.', gradient: 'from-emerald-500 via-green-400 to-lime-300' },
-            { id: 5, title: 'Web 5', url: 'https://san-ops67.github.io/5/', category: 'Corporate', desc: 'Korporátní identita a firemní prezentace.', gradient: 'from-slate-800 via-slate-600 to-slate-400' },
-            { id: 6, title: 'Web 6', url: 'https://san-ops67.github.io/6/', category: 'Blog', desc: 'Minimalistický redakční systém.', gradient: 'from-orange-400 via-amber-300 to-yellow-200' },
-            { id: 7, title: 'Web 7', url: 'https://san-ops67.github.io/7/', category: 'Web App', desc: 'Progresivní webová aplikace pro produktivitu.', gradient: 'from-violet-600 via-fuchsia-500 to-pink-500' },
-            { id: 8, title: 'Web 8', url: 'https://san-ops67.github.io/8/', category: 'Landing Page', desc: 'Konverzní stránka pro nový produkt.', gradient: 'from-cyan-500 via-blue-500 to-indigo-600' },
-            { id: 9, title: 'Web 9', url: 'https://san-ops67.github.io/9/', category: 'Social', desc: 'Komunitní fórum s reálným časem.', gradient: 'from-rose-500 via-red-400 to-orange-400' },
-            { id: 10, title: 'Web 10', url: 'https://san-ops67.github.io/10/', category: 'Experimental', desc: 'Experimentální UI/UX koncepty.', gradient: 'from-gray-900 via-purple-900 to-violet-600' },
+            { id: 1, title: 'E-Shop X', url: 'https://san-ops67.github.io/1/', category: 'E-commerce', color: 'from-blue-900 to-black' },
+            { id: 2, title: 'Kreativa', url: 'https://san-ops67.github.io/2/', category: 'Portfolio', color: 'from-purple-900 to-black' },
+            { id: 3, title: 'Dimenze', url: 'https://san-ops67.github.io/3/', category: '3D WebGL', color: 'from-emerald-900 to-black' },
+            { id: 4, title: 'Data Core', url: 'https://san-ops67.github.io/4/', category: 'SaaS / B2B', color: 'from-red-900 to-black' },
+            { id: 5, title: 'Korporace', url: 'https://san-ops67.github.io/5/', category: 'Firemní web', color: 'from-zinc-800 to-black' },
+            { id: 6, title: 'Deník', url: 'https://san-ops67.github.io/6/', category: 'CMS Systém', color: 'from-orange-900 to-black' },
+            { id: 7, title: 'Pro Task', url: 'https://san-ops67.github.io/7/', category: 'Web Aplikace', color: 'from-indigo-900 to-black' },
+            { id: 8, title: 'Launch', url: 'https://san-ops67.github.io/8/', category: 'Produkt', color: 'from-cyan-900 to-black' },
+            { id: 9, title: 'Komunita', url: 'https://san-ops67.github.io/9/', category: 'Sociální sítě', color: 'from-rose-900 to-black' },
+            { id: 10, title: 'Experiment', url: 'https://san-ops67.github.io/10/', category: 'Výzkum', color: 'from-fuchsia-900 to-black' },
         ];
 
-        // Update Project Count in Header
-        document.getElementById('project-count').textContent = `${projects.length} Projektů`;
+        const accordionContainer = document.getElementById('accordion');
 
-        // Render Projects
-        const projectList = document.getElementById('project-list');
-        
-        projects.forEach((project, index) => {
-            const formattedIndex = index + 1 < 10 ? `0${index + 1}` : index + 1;
+        // Generování akordeonu
+        projects.forEach((proj, index) => {
+            const num = index + 1 < 10 ? `0${index + 1}` : index + 1;
             
-            const projectHTML = `
-                <a href="${project.url}" target="_blank" rel="noopener noreferrer"
-                   class="project-row group relative flex flex-col md:flex-row md:items-center justify-between py-8 md:py-12 border-b border-zinc-800 transition-colors duration-300 hover:bg-zinc-900/50 px-4 -mx-4 rounded-xl"
-                   data-index="${index}">
-                    
-                    <!-- Left Column: Number & Title -->
-                    <div class="flex items-baseline gap-6 md:gap-12 mb-4 md:mb-0">
-                        <span class="text-zinc-600 font-mono text-lg md:text-xl font-light w-8 pointer-events-none">${formattedIndex}</span>
-                        <h2 class="text-3xl md:text-5xl font-bold text-zinc-300 group-hover:text-white transition-colors duration-300 tracking-tight pointer-events-none">
-                            ${project.title}
+            const itemHTML = `
+                <div class="accordion-item group cursor-pointer" data-index="${index}" data-url="${proj.url}">
+                    <div class="absolute inset-0 bg-gradient-to-b ${proj.color} opacity-80 group-hover:opacity-40 transition-opacity duration-700 z-10"></div>
+                    <div class="loader-bar"></div>
+                    <div class="iframe-wrapper absolute inset-0 z-0 pointer-events-none parallax-target">
+                        <iframe class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1400px] h-[900px] scale-[0.7] lg:scale-[0.8] origin-center border-none" src=""></iframe>
+                    </div>
+                    <div class="absolute inset-0 bg-black/30 group-hover:bg-black/60 transition-colors duration-700 z-10 pointer-events-none"></div>
+                    <div class="vertical-title absolute top-8 left-1/2 -translate-x-1/2 text-white/70 font-bold text-2xl lg:text-3xl tracking-widest uppercase z-20">
+                        <span class="text-white/30 mr-4 font-mono">${num}</span> ${proj.title}
+                    </div>
+                    <div class="expanded-content absolute inset-0 z-30 p-8 md:p-12 flex flex-col justify-end">
+                        <div class="flex items-center gap-4 text-white/50 font-mono text-sm mb-4">
+                            <span>PROJEKT ${num}</span>
+                            <div class="w-8 h-[1px] bg-white/30"></div>
+                            <span>${proj.category}</span>
+                        </div>
+                        <h2 class="text-5xl md:text-7xl font-bold text-white mb-8 tracking-tighter w-full truncate">
+                            ${proj.title}
                         </h2>
-                    </div>
-
-                    <!-- Right Column: Meta & Icon -->
-                    <div class="flex items-center justify-between md:justify-end gap-8 md:gap-16 w-full md:w-auto md:ml-auto ml-14">
-                        <div class="flex flex-col md:items-end pointer-events-none">
-                            <span class="text-zinc-300 font-medium">${project.category}</span>
-                            <span class="text-zinc-500 text-sm mt-1">${project.desc}</span>
-                        </div>
-                        
-                        <!-- Arrow Icon -->
-                        <div class="w-12 h-12 rounded-full border border-zinc-700 flex items-center justify-center group-hover:bg-white group-hover:border-white transition-all duration-300 flex-shrink-0">
-                            <i data-lucide="arrow-up-right" class="w-6 h-6 text-zinc-400 group-hover:text-black transition-colors duration-300"></i>
+                        <div class="flex items-center justify-between">
+                            <p class="text-white/70 max-w-md hidden md:block">
+                                Interaktivní náhled přímo v prohlížeči. Pro plnohodnotný zážitek otevřete v nové kartě.
+                            </p>
+                            <a href="${proj.url}" target="_blank" class="magnet-link interactive-element inline-flex items-center bg-white/20 backdrop-blur-xl border border-white/40 shadow-xl text-white px-8 py-4 rounded-full font-bold hover:bg-white/40 hover:scale-105 transition-all duration-300">
+                                Otevřít web
+                            </a>
                         </div>
                     </div>
-                    
-                    <!-- Mobile Only Background Gradient Line -->
-                    <div class="absolute bottom-0 left-0 h-[2px] w-full bg-gradient-to-r ${project.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 md:hidden rounded-full pointer-events-none"></div>
-                </a>
+                </div>
             `;
-            
-            projectList.insertAdjacentHTML('beforeend', projectHTML);
+            accordionContainer.insertAdjacentHTML('beforeend', itemHTML);
         });
 
-        // Initialize Lucide Icons after injecting HTML
         lucide.createIcons();
 
-        // Floating Preview Logic
-        const floatingPreview = document.getElementById('floating-preview');
-        const previewGradient = document.getElementById('preview-gradient');
-        const previewNumber = document.getElementById('preview-number');
-        const previewTitle = document.getElementById('preview-title');
-        const previewCategory = document.getElementById('preview-category');
-        
-        let mouseX = 0;
-        let mouseY = 0;
-        let isHovering = false;
-        let currentGradientClasses = [];
+        // Logika Akordeonu
+        const items = document.querySelectorAll('.accordion-item');
+        let activeTimeout;
+        let currentIndex = 0;
 
-        // Track mouse movement globally for smooth transform updates
+        function activateItem(index) {
+            if (index < 0 || index >= items.length) return;
+            currentIndex = index;
+            const item = items[index];
+            const iframe = item.querySelector('iframe');
+            const url = item.getAttribute('data-url');
+
+            items.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            
+            if (iframe.getAttribute('src') !== url) {
+                item.classList.add('loading');
+                iframe.setAttribute('src', url);
+                iframe.onload = () => item.classList.remove('loading');
+                setTimeout(() => item.classList.remove('loading'), 1500);
+            }
+        }
+
+        items.forEach((item, index) => {
+            item.addEventListener('mouseenter', () => {
+                clearTimeout(activeTimeout);
+                activeTimeout = setTimeout(() => activateItem(index), 150);
+            });
+        });
+
+        setTimeout(() => activateItem(0), 500);
+
+        // KURZOR A PARALAXA
+        const cursor = document.getElementById('custom-cursor');
+        const mainTitle = document.getElementById('main-title');
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+
         document.addEventListener('mousemove', (e) => {
             mouseX = e.clientX;
             mouseY = e.clientY;
             
-            // Use requestAnimationFrame for performance
             requestAnimationFrame(() => {
-                floatingPreview.style.transform = `translate(${mouseX + 20}px, ${mouseY + 20}px)`;
-            });
-        });
+                cursor.style.transform = `translate(calc(${mouseX}px - 50%), calc(${mouseY}px - 50%))`;
 
-        // Add hover event listeners to each project row
-        document.querySelectorAll('.project-row').forEach(row => {
-            row.addEventListener('mouseenter', (e) => {
-                const index = e.currentTarget.getAttribute('data-index');
-                const project = projects[index];
-                
-                // Update content
-                const formattedIndex = parseInt(index) + 1 < 10 ? `0${parseInt(index) + 1}` : parseInt(index) + 1;
-                previewNumber.textContent = formattedIndex;
-                previewTitle.textContent = project.title;
-                previewCategory.textContent = project.category;
-                
-                // Update gradient classes
-                if (currentGradientClasses.length > 0) {
-                    previewGradient.classList.remove(...currentGradientClasses);
+                if (window.scrollY < window.innerHeight) {
+                    const titleMoveX = (mouseX - window.innerWidth / 2) * -0.04;
+                    const titleMoveY = (mouseY - window.innerHeight / 2) * -0.04;
+                    mainTitle.style.transform = `translate(${titleMoveX}px, ${titleMoveY}px)`;
+
+                    const activeItem = items[currentIndex];
+                    if (activeItem && activeItem.classList.contains('active')) {
+                        const iframeWrapper = activeItem.querySelector('.iframe-wrapper');
+                        const iframeMoveX = (mouseX - window.innerWidth / 2) * 0.02;
+                        const iframeMoveY = (mouseY - window.innerHeight / 2) * 0.02;
+                        iframeWrapper.style.transform = `translate(${iframeMoveX}px, ${iframeMoveY}px)`;
+                    }
                 }
-                currentGradientClasses = project.gradient.split(' ');
-                previewGradient.classList.add(...currentGradientClasses);
-                
-                // Show preview
-                isHovering = true;
-                floatingPreview.style.opacity = '1';
-            });
-
-            row.addEventListener('mouseleave', () => {
-                isHovering = false;
-                floatingPreview.style.opacity = '0';
             });
         });
+
+        document.querySelectorAll('.interactive-element').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursor.classList.add('hovering-link');
+                cursor.textContent = '';
+            });
+            el.addEventListener('mouseleave', () => {
+                cursor.classList.remove('hovering-link');
+                cursor.textContent = 'Zobrazit'; 
+            });
+        });
+
+
+        // --------------------------------------------------------
+        // FIDGET 1: MAGNETICKÁ MŘÍŽKA
+        // --------------------------------------------------------
+        const gridContainer = document.getElementById('grid-container');
+        const dotsWrapper = document.getElementById('dots-wrapper');
+        const dots = [];
+        const cols = 15;
+        const rows = 12;
+
+        for(let i=0; i<rows; i++) {
+            for(let j=0; j<cols; j++) {
+                const dot = document.createElement('div');
+                dot.className = 'dot-grid-item';
+                const left = (j / (cols-1)) * 80 + 10; 
+                const top = (i / (rows-1)) * 80 + 10;
+                dot.style.left = `${left}%`;
+                dot.style.top = `${top}%`;
+                
+                dotsWrapper.appendChild(dot);
+                dots.push({ el: dot, x: left, y: top });
+            }
+        }
+
+        gridContainer.addEventListener('mousemove', (e) => {
+            const rect = gridContainer.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+
+            dots.forEach(dot => {
+                const dotX = (dot.x / 100) * rect.width;
+                const dotY = (dot.y / 100) * rect.height;
+                const dx = dotX - mx;
+                const dy = dotY - my;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                const maxDist = 120; 
+
+                if (dist < maxDist) {
+                    const force = (maxDist - dist) / maxDist;
+                    const angle = Math.atan2(dy, dx);
+                    const moveX = Math.cos(angle) * force * 40;
+                    const moveY = Math.sin(angle) * force * 40;
+                    
+                    dot.el.style.transform = `translate(${moveX}px, ${moveY}px) scale(${1 + force*1.5})`;
+                    dot.el.style.backgroundColor = `rgba(255,255,255, ${0.3 + force*0.7})`;
+                } else {
+                    dot.el.style.transform = 'translate(0px, 0px) scale(1)';
+                    dot.el.style.backgroundColor = 'rgba(255,255,255,0.3)';
+                }
+            });
+        });
+
+        gridContainer.addEventListener('mouseleave', () => {
+            dots.forEach(dot => {
+                dot.el.style.transform = 'translate(0px, 0px) scale(1)';
+                dot.el.style.backgroundColor = 'rgba(255,255,255,0.3)';
+            });
+        });
+
+
+        // --------------------------------------------------------
+        // FIDGET 2: ELASTICKÉ STRUNY
+        // --------------------------------------------------------
+        const svg = document.getElementById('strings-svg');
+        const numStrings = 7;
+        const strings = [];
+
+        for(let i=0; i<numStrings; i++) {
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.classList.add('elastic-string');
+            svg.appendChild(path);
+            
+            const baseY = 50 + (i * 50); 
+            strings.push({ el: path, baseY: baseY, currentY: baseY, vy: 0, isPlucked: false });
+        }
+
+        const stringContainer = document.getElementById('string-container');
+        let smx = 0, smy = 0;
+        let isOverStrings = false;
+
+        stringContainer.addEventListener('mousemove', (e) => {
+            const rect = svg.getBoundingClientRect();
+            smx = ((e.clientX - rect.left) / rect.width) * 400;
+            smy = ((e.clientY - rect.top) / rect.height) * 400;
+        });
+        stringContainer.addEventListener('mouseenter', () => isOverStrings = true);
+        stringContainer.addEventListener('mouseleave', () => isOverStrings = false);
+
+        function animateStrings() {
+            strings.forEach(s => {
+                const dist = Math.abs(smy - s.baseY);
+                const isNear = smx > 20 && smx < 380 && dist < 30 && isOverStrings;
+
+                if (isNear) {
+                    s.isPlucked = true;
+                    s.currentY += (smy - s.currentY) * 0.5;
+                } else {
+                    if (s.isPlucked) {
+                        const tension = 0.2;
+                        const dampening = 0.85;
+                        let force = (s.baseY - s.currentY) * tension;
+                        s.vy += force;
+                        s.vy *= dampening;
+                        s.currentY += s.vy;
+
+                        if(Math.abs(s.vy) < 0.1 && Math.abs(s.baseY - s.currentY) < 0.1) {
+                            s.currentY = s.baseY;
+                            s.isPlucked = false;
+                        }
+                    }
+                }
+                const cx = s.isPlucked && isNear ? smx : 200;
+                s.el.setAttribute('d', `M 0 ${s.baseY} Q ${cx} ${s.currentY} 400 ${s.baseY}`);
+            });
+            requestAnimationFrame(animateStrings);
+        }
+        animateStrings();
+
+
+        // --------------------------------------------------------
+        // FIDGET 3: KVANTOVÝ ROJ
+        // --------------------------------------------------------
+        const swarmCanvas = document.getElementById('swarm-canvas');
+        const sCtx = swarmCanvas.getContext('2d');
+        const swarmContainer = document.getElementById('swarm-container');
+        
+        let cwSwarm, chSwarm;
+        let swarmParticles = [];
+        let swarmMouse = { x: -1000, y: -1000, radius: 100 };
+
+        function initSwarm() {
+            const rect = swarmContainer.getBoundingClientRect();
+            swarmCanvas.width = cwSwarm = rect.width;
+            swarmCanvas.height = chSwarm = rect.height;
+            swarmParticles = [];
+            
+            for(let i=0; i<300; i++) {
+                swarmParticles.push({
+                    x: Math.random() * cwSwarm, y: Math.random() * chSwarm,
+                    originX: Math.random() * cwSwarm, originY: Math.random() * chSwarm,
+                    vx: 0, vy: 0, size: Math.random() * 2 + 0.5,
+                    color: `hsla(${Math.random() * 60 + 200}, 100%, 70%, ${Math.random()*0.5 + 0.2})`
+                });
+            }
+        }
+        window.addEventListener('resize', initSwarm);
+
+        swarmContainer.addEventListener('mousemove', (e) => {
+            const rect = swarmCanvas.getBoundingClientRect();
+            swarmMouse.x = e.clientX - rect.left;
+            swarmMouse.y = e.clientY - rect.top;
+        });
+        swarmContainer.addEventListener('mouseleave', () => { swarmMouse.x = -1000; swarmMouse.y = -1000; });
+        swarmContainer.addEventListener('mousedown', () => swarmMouse.radius = 300);
+        swarmContainer.addEventListener('mouseup', () => swarmMouse.radius = 100);
+
+        function animateSwarm() {
+            sCtx.clearRect(0, 0, cwSwarm, chSwarm);
+            swarmParticles.forEach(p => {
+                let dx = p.originX - p.x;
+                let dy = p.originY - p.y;
+                p.vx += dx * 0.01; p.vy += dy * 0.01;
+
+                let mdx = swarmMouse.x - p.x;
+                let mdy = swarmMouse.y - p.y;
+                let dist = Math.sqrt(mdx*mdx + mdy*mdy);
+
+                if (dist < swarmMouse.radius) {
+                    let force = (swarmMouse.radius - dist) / swarmMouse.radius;
+                    p.vx -= (mdx / dist) * force * 2;
+                    p.vy -= (mdy / dist) * force * 2;
+                }
+
+                p.vx *= 0.85; p.vy *= 0.85;
+                p.x += p.vx; p.y += p.vy;
+
+                sCtx.beginPath();
+                sCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                sCtx.fillStyle = p.color;
+                sCtx.fill();
+            });
+            requestAnimationFrame(animateSwarm);
+        }
+        
+
+        // --------------------------------------------------------
+        // FIDGET 4: ČERNÁ DÍRA (Gravitační Vír)
+        // --------------------------------------------------------
+        const bhCanvas = document.getElementById('bh-canvas');
+        const bhCtx = bhCanvas.getContext('2d');
+        const bhContainer = document.getElementById('bh-container');
+        
+        let cwBH, chBH;
+        let bhParticles = [];
+        let bhMouse = { x: -1000, y: -1000, isDown: false };
+        let bhCenter = { x: 0, y: 0 };
+
+        function initBH() {
+            const rect = bhContainer.getBoundingClientRect();
+            bhCanvas.width = cwBH = rect.width;
+            bhCanvas.height = chBH = rect.height;
+            bhCenter.x = cwBH / 2;
+            bhCenter.y = chBH / 2;
+            bhParticles = [];
+            
+            for(let i=0; i<400; i++) {
+                bhParticles.push({
+                    angle: Math.random() * Math.PI * 2,
+                    radius: Math.random() * 150 + 20,
+                    speed: (Math.random() * 0.02) + 0.005,
+                    size: Math.random() * 1.5 + 0.5,
+                    color: `rgba(255, 255, 255, ${Math.random() * 0.6 + 0.2})`
+                });
+            }
+        }
+        window.addEventListener('resize', initBH);
+
+        bhContainer.addEventListener('mousemove', (e) => {
+            const rect = bhCanvas.getBoundingClientRect();
+            bhMouse.x = e.clientX - rect.left;
+            bhMouse.y = e.clientY - rect.top;
+        });
+        bhContainer.addEventListener('mouseleave', () => { bhMouse.x = -1000; bhMouse.isDown = false; });
+        bhContainer.addEventListener('mousedown', () => bhMouse.isDown = true);
+        bhContainer.addEventListener('mouseup', () => bhMouse.isDown = false);
+
+        function animateBH() {
+            bhCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            bhCtx.fillRect(0, 0, cwBH, chBH);
+            
+            let targetX = (bhMouse.x !== -1000) ? bhMouse.x : cwBH / 2;
+            let targetY = (bhMouse.x !== -1000) ? bhMouse.y : chBH / 2;
+            bhCenter.x += (targetX - bhCenter.x) * 0.05;
+            bhCenter.y += (targetY - bhCenter.y) * 0.05;
+
+            bhParticles.forEach(p => {
+                p.angle += p.speed;
+                
+                if (bhMouse.isDown) {
+                    p.radius -= 3;
+                    if (p.radius < 5) p.radius = Math.random() * 200 + 100;
+                } else {
+                    p.radius += ( (Math.random() * 150 + 20) - p.radius ) * 0.02;
+                }
+
+                let px = bhCenter.x + Math.cos(p.angle) * p.radius;
+                let py = bhCenter.y + Math.sin(p.angle) * p.radius;
+
+                bhCtx.beginPath();
+                bhCtx.arc(px, py, p.size, 0, Math.PI * 2);
+                bhCtx.fillStyle = p.color;
+                bhCtx.fill();
+            });
+            requestAnimationFrame(animateBH);
+        }
+
+        // --------------------------------------------------------
+        // FIDGET 5: KINETICKÁ CHAPADLA (Inverzní Kinematika)
+        // --------------------------------------------------------
+        const tenCanvas = document.getElementById('tentacle-canvas');
+        const tCtx = tenCanvas.getContext('2d');
+        const tenContainer = document.getElementById('tentacle-container');
+        
+        let cwTen, chTen;
+        const numSegments = 25;
+        let tenPoints = [];
+        let tenMouse = { x: 0, y: 0 };
+
+        function initTentacles() {
+            const rect = tenContainer.getBoundingClientRect();
+            tenCanvas.width = cwTen = rect.width;
+            tenCanvas.height = chTen = rect.height;
+            tenMouse.x = cwTen / 2;
+            tenMouse.y = chTen / 2;
+            tenPoints = [];
+            for(let i=0; i<numSegments; i++) {
+                tenPoints.push({ x: cwTen/2, y: chTen/2 });
+            }
+        }
+        window.addEventListener('resize', initTentacles);
+
+        tenContainer.addEventListener('mousemove', (e) => {
+            const rect = tenCanvas.getBoundingClientRect();
+            tenMouse.x = e.clientX - rect.left;
+            tenMouse.y = e.clientY - rect.top;
+        });
+        tenContainer.addEventListener('mouseleave', () => {
+            tenMouse.x = cwTen / 2;
+            tenMouse.y = chTen / 2;
+        });
+
+        function animateTentacles() {
+            tCtx.clearRect(0, 0, cwTen, chTen);
+            
+            tenPoints[0].x += (tenMouse.x - tenPoints[0].x) * 0.2;
+            tenPoints[0].y += (tenMouse.y - tenPoints[0].y) * 0.2;
+            
+            for(let i=1; i<numSegments; i++) {
+                tenPoints[i].x += (tenPoints[i-1].x - tenPoints[i].x) * 0.45;
+                tenPoints[i].y += (tenPoints[i-1].y - tenPoints[i].y) * 0.45;
+            }
+
+            tCtx.beginPath();
+            tCtx.moveTo(tenPoints[0].x, tenPoints[0].y);
+            for(let i=1; i<numSegments; i++) {
+                tCtx.lineTo(tenPoints[i].x, tenPoints[i].y);
+            }
+            tCtx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            tCtx.lineWidth = 12;
+            tCtx.lineCap = 'round';
+            tCtx.lineJoin = 'round';
+            tCtx.stroke();
+
+            for(let i=0; i<numSegments; i++) {
+                tCtx.beginPath();
+                tCtx.arc(tenPoints[i].x, tenPoints[i].y, (numSegments-i)*0.3 + 1, 0, Math.PI*2);
+                tCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                tCtx.fill();
+            }
+            requestAnimationFrame(animateTentacles);
+        }
+
+        // --------------------------------------------------------
+        // FIDGET 6: KINETICKÁ SFÉRA (3D Rotující Sféra)
+        // --------------------------------------------------------
+        const sphereCanvas = document.getElementById('sphere-canvas');
+        const spCtx = sphereCanvas.getContext('2d');
+        const sphereContainer = document.getElementById('sphere-container');
+
+        let cwSp, chSp;
+        let baseNodes = [];
+        const numNodes = 120;
+        const sphereRadius = 120;
+        let spMouse = { x: 0, y: 0, isHovering: false };
+        
+        let globalRotX = 0;
+        let globalRotY = 0;
+        let currentSpeedX = 0;
+        let currentSpeedY = 0;
+
+        function initSphere() {
+            const rect = sphereContainer.getBoundingClientRect();
+            sphereCanvas.width = cwSp = rect.width;
+            sphereCanvas.height = chSp = rect.height;
+
+            baseNodes = [];
+            // Fibonacciho sféra pro rovnoměrné rozložení bodů
+            const phi = Math.PI * (3 - Math.sqrt(5));
+            for (let i = 0; i < numNodes; i++) {
+                const y = 1 - (i / (numNodes - 1)) * 2;
+                const radiusAtY = Math.sqrt(1 - y * y);
+                const theta = phi * i;
+
+                const x = Math.cos(theta) * radiusAtY;
+                const z = Math.sin(theta) * radiusAtY;
+
+                baseNodes.push({ x, y, z });
+            }
+        }
+        window.addEventListener('resize', initSphere);
+
+        sphereContainer.addEventListener('mousemove', (e) => {
+            const rect = sphereCanvas.getBoundingClientRect();
+            spMouse.x = (e.clientX - rect.left) - cwSp / 2;
+            spMouse.y = (e.clientY - rect.top) - chSp / 2;
+            spMouse.isHovering = true;
+        });
+
+        sphereContainer.addEventListener('mouseleave', () => {
+            spMouse.isHovering = false;
+        });
+
+        // 3D Rotace okolo globálních os
+        function rotate3D(node, angX, angY) {
+            // Rotace osa X
+            let y1 = node.y * Math.cos(angX) - node.z * Math.sin(angX);
+            let z1 = node.z * Math.cos(angX) + node.y * Math.sin(angX);
+
+            // Rotace osa Y
+            let x2 = node.x * Math.cos(angY) + z1 * Math.sin(angY);
+            let z2 = z1 * Math.cos(angY) - node.x * Math.sin(angY);
+
+            return { x: x2, y: y1, z: z2 };
+        }
+
+        function animateSphere() {
+            spCtx.clearRect(0, 0, cwSp, chSp);
+
+            // Cílená rychlost rotace závisí na pozici myši
+            let targetSpeedX = spMouse.isHovering ? spMouse.y * 0.0001 : 0.002;
+            let targetSpeedY = spMouse.isHovering ? spMouse.x * 0.0001 : 0.005;
+
+            // Zjemnění (Lerping) změny rychlosti
+            currentSpeedX += (targetSpeedX - currentSpeedX) * 0.05;
+            currentSpeedY += (targetSpeedY - currentSpeedY) * 0.05;
+
+            globalRotX += currentSpeedX;
+            globalRotY += currentSpeedY;
+
+            let projectedNodes = [];
+
+            // Projekce všech bodů
+            for (let i = 0; i < numNodes; i++) {
+                let node = baseNodes[i];
+                let rotated = rotate3D(node, globalRotX, globalRotY);
+                
+                // Základní 3D perspektiva
+                let perspective = 300 / (300 - rotated.z * sphereRadius);
+                let px = cwSp / 2 + rotated.x * sphereRadius * perspective;
+                let py = chSp / 2 + rotated.y * sphereRadius * perspective;
+
+                projectedNodes.push({ px, py, z: rotated.z, perspective });
+            }
+
+            // Kreslení vazeb mezi blízkými body
+            spCtx.lineWidth = 0.5;
+            for (let i = 0; i < numNodes; i++) {
+                for (let j = i + 1; j < numNodes; j++) {
+                    let dx = projectedNodes[i].px - projectedNodes[j].px;
+                    let dy = projectedNodes[i].py - projectedNodes[j].py;
+                    let dist = dx * dx + dy * dy;
+
+                    // Spojíme pouze, pokud jsou blízko sebe
+                    if (dist < 1800) {
+                        let avgZ = (projectedNodes[i].z + projectedNodes[j].z) / 2;
+                        let alpha = Math.max(0, 0.4 + avgZ * 0.4); // Ztmavení v pozadí
+                        alpha *= (1 - dist / 1800); // Bližší body mají silnější vazbu
+
+                        spCtx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+                        spCtx.beginPath();
+                        spCtx.moveTo(projectedNodes[i].px, projectedNodes[i].py);
+                        spCtx.lineTo(projectedNodes[j].px, projectedNodes[j].py);
+                        spCtx.stroke();
+                    }
+                }
+            }
+
+            // Kreslení samotných uzlů (bodů)
+            for (let i = 0; i < numNodes; i++) {
+                let p = projectedNodes[i];
+                let alpha = Math.max(0.1, 0.5 + p.z * 0.5);
+                let size = Math.max(0.5, p.perspective * 2.5);
+
+                spCtx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                spCtx.beginPath();
+                spCtx.arc(p.px, p.py, size, 0, Math.PI * 2);
+                spCtx.fill();
+            }
+
+            requestAnimationFrame(animateSphere);
+        }
+
+        // --------------------------------------------------------
+        // Inicializace všech Canvas prvků
+        // --------------------------------------------------------
+        setTimeout(() => {
+            initSwarm();
+            animateSwarm();
+            initBH();
+            animateBH();
+            initTentacles();
+            animateTentacles();
+            initSphere();
+            animateSphere();
+        }, 100);
+
     </script>
 </body>
 </html>
