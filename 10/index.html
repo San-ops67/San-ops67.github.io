@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORMA Architecture Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Manrope:wght@200;300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sand-light: #FAF9F7;
+            --sand: #E8E4DE;
+            --sand-dark: #D4CFC7;
+            --stone: #9B9590;
+            --stone-dark: #6B6560;
+            --charcoal: #2A2825;
+            --charcoal-deep: #1A1917;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Manrope', sans-serif;
+            font-weight: 300;
+            background-color: var(--sand-light);
+            color: var(--charcoal);
+            overflow-x: hidden;
+            cursor: none;
+        }
+        
+        .font-serif {
+            font-family: 'Cormorant Garamond', serif;
+        }
+        
+        /* Custom Cursor */
+        .cursor {
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--charcoal);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.15s ease, background 0.15s ease;
+            transform: translate(-50%, -50%);
+        }
+        
+        .cursor-dot {
+            width: 4px;
+            height: 4px;
+            background: var(--charcoal);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+        }
+        
+        .cursor.hover {
+            transform: translate(-50%, -50%) scale(2);
+            background: rgba(42, 40, 37, 0.1);
+        }
+        
+        /* Side Navigation */
+        .side-nav {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            mix-blend-mode: difference;
+        }
+        
+        .nav-link {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+            font-size: 11px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--sand-light);
+            margin: 24px 0;
+            opacity: 0.6;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            opacity: 1;
+            transform: rotate(180deg) translateX(5px);
+        }
+        
+        /* Hamburger Menu */
+        .hamburger {
+            position: fixed;
+            top: 40px;
+            right: 50px;
+            width: 30px;
+            height: 20px;
+            cursor: pointer;
+            z-index: 200;
+        }
+        
+        .hamburger span {
+            display: block;
+            width: 100%;
+            height: 1px;
+            background: var(--charcoal);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .hamburger span:nth-child(1) { transform: translateY(0); }
+        .hamburger span:nth-child(2) { transform: translateY(8px); }
+        .hamburger span:nth-child(3) { transform: translateY(16px); width: 60%; }
+        
+        .hamburger.active span:nth-child(1) {
+            transform: translateY(8px) rotate(45deg);
+        }
+        
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+        
+        .hamburger.active span:nth-child(3) {
+            transform: translateY(8px) rotate(-45deg);
+            width: 100%;
+        }
+        
+        /* Full Screen Menu */
+        .menu-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--charcoal-deep);
+            z-index: 150;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            clip-path: circle(0% at calc(100% - 65px) 50px);
+            transition: clip-path 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+        
+        .menu-overlay.active {
+            clip-path: circle(150% at calc(100% - 65px) 50px);
+        }
+        
+        .menu-item {
+            display: block;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(48px, 8vw, 100px);
+            font-weight: 300;
+            color: var(--sand-light);
+            text-decoration: none;
+            padding: 20px 0;
+            opacity: 0;
+            transform: translateY(60px);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            transition-delay: calc(var(--i) * 0.1s);
+        }
+        
+        .menu-overlay.active .menu-item {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .menu-item:hover {
+            color: var(--stone);
+            padding-left: 30px;
+        }
+        
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-image {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            transform: scale(1.1);
+            transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .hero.scrolled .hero-image {
+            transform: scale(1);
+        }
+        
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                to bottom,
+                rgba(26, 25, 23, 0.2) 0%,
+                rgba(26, 25, 23, 0) 40%,
+                rgba(26, 25, 23, 0.3) 100%
+            );
+        }
+        
+        /* Parallax Container */
+        .parallax-section {
+            position: relative;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .parallax-bg {
+            position: absolute;
+            inset: -100px;
+            background-size: cover;
+            background-position: center;
+            will-change: transform;
+        }
+        
+        /* Reveal Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(80px);
+            transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .reveal-line {
+            overflow: hidden;
+        }
+        
+        .reveal-line span {
+            display: block;
+            transform: translateY(100%);
+            transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .reveal-line.active span {
+            transform: translateY(0);
+        }
+        
+        /* Project Cards */
+        .project-card {
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .project-card img {
+            transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .project-card:hover img {
+            transform: scale(1.05);
+        }
+        
+        .project-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 60px;
+            background: linear-gradient(to top, rgba(26, 25, 23, 0.8), transparent);
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.6s ease;
+        }
+        
+        .project-card:hover .project-info {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* Before/After Slider */
+        .ba-slider {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ba-slider img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .ba-after {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+        }
+        
+        .ba-after img {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        
+        .ba-slider-handle {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--sand-light);
+            left: 50%;
+            transform: translateX(-50%);
+            cursor: ew-resize;
+            z-index: 10;
+        }
+        
+        .ba-slider-handle::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border: 1px solid var(--sand-light);
+            border-radius: 50%;
+            background: rgba(26, 25, 23, 0.5);
+        }
+        
+        .ba-slider-handle::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            border-left: 2px solid var(--sand-light);
+            border-right: 2px solid var(--sand-light);
+        }
+        
+        /* Scroll Indicator */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .scroll-line {
+            width: 1px;
+            height: 60px;
+            background: linear-gradient(to bottom, var(--sand-light), transparent);
+            animation: scrollPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 1; transform: scaleY(1); }
+            50% { opacity: 0.5; transform: scaleY(0.6); }
+        }
+        
+        /* Section Divider */
+        .section-divider {
+            width: 1px;
+            height: 100px;
+            background: linear-gradient(to bottom, transparent, var(--stone), transparent);
+            margin: 0 auto;
+        }
+        
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 2px;
+            background: var(--charcoal);
+            z-index: 200;
+            transform-origin: left;
+            transform: scaleX(0);
+        }
+        
+        /* Number styling */
+        .section-number {
+            font-family: 'Manrope', sans-serif;
+            font-size: 11px;
+            letter-spacing: 0.3em;
+            color: var(--stone);
+        }
+        
+        /* Button styles */
+        .btn-outline {
+            border: 1px solid var(--charcoal);
+            padding: 16px 40px;
+            font-size: 11px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-outline::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--charcoal);
+            transform: translateX(-101%);
+            transition: transform 0.4s ease;
+        }
+        
+        .btn-outline:hover::before {
+            transform: translateX(0);
+        }
+        
+        .btn-outline span {
+            position: relative;
+            z-index: 1;
+            transition: color 0.4s ease;
+        }
+        
+        .btn-outline:hover span {
+            color: var(--sand-light);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .side-nav { display: none; }
+            .hamburger { right: 30px; }
+            body { cursor: auto; }
+            .cursor, .cursor-dot { display: none; }
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Custom Cursor -->
+    <div class="cursor"></div>
+    <div class="cursor-dot"></div>
+    
+    <!-- Progress Bar -->
+    <div class="progress-bar"></div>
+    
+    <!-- Side Navigation -->
+    <nav class="side-nav">
+        <a href="#hero" class="nav-link active">Home</a>
+        <a href="#about" class="nav-link">About</a>
+        <a href="#projects" class="nav-link">Projects</a>
+        <a href="#process" class="nav-link">Process</a>
+        <a href="#contact" class="nav-link">Contact</a>
+    </nav>
+    
+    <!-- Hamburger Menu -->
+    <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    
+    <!-- Full Screen Menu -->
+    <div class="menu-overlay" id="menu">
+        <div class="text-center">
+            <a href="#hero" class="menu-item" style="--i: 0">Home</a>
+            <a href="#about" class="menu-item" style="--i: 1">About</a>
+            <a href="#projects" class="menu-item" style="--i: 2">Projects</a>
+            <a href="#process" class="menu-item" style="--i: 3">Process</a>
+            <a href="#contact" class="menu-item" style="--i: 4">Contact</a>
+        </div>
+    </div>
+    
+    <!-- Hero Section -->
+    <section id="hero" class="hero">
+        <div class="hero-image" style="background-image: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920&q=80')"></div>
+        <div class="hero-overlay"></div>
+        
+        <div class="absolute inset-0 flex items-center justify-center">
+            <div class="text-center text-white px-8">
+                <div class="reveal-line mb-6">
+                    <span class="section-number text-white/60">Established 2008</span>
+                </div>
+                <h1 class="font-serif text-6xl md:text-8xl lg:text-9xl font-light tracking-tight reveal" style="transition-delay: 0.2s">
+                    FORMA
+                </h1>
+                <p class="text-sm md:text-base tracking-[0.4em] uppercase mt-8 opacity-80 reveal" style="transition-delay: 0.4s">
+                    Architecture Studio
+                </p>
+            </div>
+        </div>
+        
+        <div class="scroll-indicator">
+            <span class="text-white/60 text-xs tracking-[0.3em] uppercase">Scroll</span>
+            <div class="scroll-line"></div>
+        </div>
+    </section>
+    
+    <!-- About Section -->
+    <section id="about" class="py-40 md:py-60 px-8 md:px-20 lg:px-40" style="background: var(--sand)">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-12 gap-8">
+                <div class="col-span-12 md:col-span-2 reveal">
+                    <span class="section-number">01</span>
+                </div>
+                <div class="col-span-12 md:col-span-8">
+                    <h2 class="font-serif text-4xl md:text-6xl lg:text-7xl font-light leading-tight reveal" style="transition-delay: 0.1s">
+                        Architecture that<br>
+                        <em class="font-light">breathes with</em><br>
+                        its inhabitants
+                    </h2>
+                    <div class="mt-16 grid grid-cols-1 md:grid-cols-2 gap-16">
+                        <div class="reveal" style="transition-delay: 0.2s">
+                            <p class="text-base leading-relaxed opacity-70">
+                                We believe in the power of spatial narratives. Each project begins with listening—to the land, the light, and the lives that will unfold within our walls.
+                            </p>
+                        </div>
+                        <div class="reveal" style="transition-delay: 0.3s">
+                            <p class="text-base leading-relaxed opacity-70">
+                                Our work spans residential, cultural, and hospitality sectors, united by a commitment to timeless minimalism and environmental responsibility.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mt-20 reveal" style="transition-delay: 0.4s">
+                        <button class="btn-outline">
+                            <span>Our Philosophy</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Parallax Statement -->
+    <section class="parallax-section flex items-center justify-center">
+        <div class="parallax-bg" style="background-image: url('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1920&q=80')"></div>
+        <div class="absolute inset-0 bg-black/40"></div>
+        <div class="relative z-10 text-center px-8">
+            <h2 class="font-serif text-4xl md:text-6xl lg:text-8xl font-light text-white reveal">
+                Space is the<br>breath of art
+            </h2>
+            <p class="text-white/60 mt-8 tracking-[0.3em] text-sm uppercase reveal" style="transition-delay: 0.2s">
+                Frank Lloyd Wright
+            </p>
+        </div>
+    </section>
+    
+    <!-- Projects Section -->
+    <section id="projects" class="py-40 md:py-60" style="background: var(--sand-light)">
+        <div class="px-8 md:px-20 lg:px-40">
+            <div class="flex justify-between items-end mb-20">
+                <div class="reveal">
+                    <span class="section-number">02</span>
+                    <h2 class="font-serif text-5xl md:text-7xl font-light mt-4">Selected Works</h2>
+                </div>
+                <div class="hidden md:block reveal" style="transition-delay: 0.1s">
+                    <span class="text-sm opacity-60">2018 — 2024</span>
+                </div>
+            </div>
+            
+            <!-- Project Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+                <!-- Project 1 -->
+                <div class="project-card aspect-[4/5] reveal" style="transition-delay: 0.1s">
+                    <img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80" alt="Coastal Residence" class="w-full h-full object-cover">
+                    <div class="project-info">
+                        <span class="section-number text-white/60">01</span>
+                        <h3 class="font-serif text-3xl text-white mt-2">Coastal Residence</h3>
+                        <p class="text-white/60 text-sm mt-2">Malibu, California — 2023</p>
+                    </div>
+                </div>
+                
+                <!-- Project 2 -->
+                <div class="project-card aspect-[4/5] md:mt-32 reveal" style="transition-delay: 0.2s">
+                    <img src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&q=80" alt="Desert Pavilion" class="w-full h-full object-cover">
+                    <div class="project-info">
+                        <span class="section-number text-white/60">02</span>
+                        <h3 class="font-serif text-3xl text-white mt-2">Desert Pavilion</h3>
+                        <p class="text-white/60 text-sm mt-2">Scottsdale, Arizona — 2022</p>
+                    </div>
+                </div>
+                
+                <!-- Project 3 -->
+                <div class="project-card aspect-[4/5] reveal" style="transition-delay: 0.3s">
+                    <img src="https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=800&q=80" alt="Urban Sanctuary" class="w-full h-full object-cover">
+                    <div class="project-info">
+                        <span class="section-number text-white/60">03</span>
+                        <h3 class="font-serif text-3xl text-white mt-2">Urban Sanctuary</h3>
+                        <p class="text-white/60 text-sm mt-2">New York, NY — 2023</p>
+                    </div>
+                </div>
+                
+                <!-- Project 4 -->
+                <div class="project-card aspect-[4/5] md:mt-32 reveal" style="transition-delay: 0.4s">
+                    <img src="https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=800&q=80" alt="Mountain Retreat" class="w-full h-full object-cover">
+                    <div class="project-info">
+                        <span class="section-number text-white/60">04</span>
+                        <h3 class="font-serif text-3xl text-white mt-2">Mountain Retreat</h3>
+                        <p class="text-white/60 text-sm mt-2">Aspen, Colorado — 2024</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-20 reveal">
+                <button class="btn-outline">
+                    <span>View All Projects</span>
+                </button>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Before/After Section -->
+    <section class="py-40 md:py-60" style="background: var(--charcoal-deep)">
+        <div class="px-8 md:px-20 lg:px-40">
+            <div class="text-center mb-16">
+                <span class="section-number text-white/40 reveal">Transformation</span>
+                <h2 class="font-serif text-4xl md:text-6xl text-white font-light mt-4 reveal" style="transition-delay: 0.1s">
+                    Before & After
+                </h2>
+            </div>
+            
+            <div class="ba-slider aspect-[16/9] max-w-5xl mx-auto reveal" style="transition-delay: 0.2s">
+                <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=80" alt="Before renovation" class="before-img">
+                <div class="ba-after" style="width: 50%">
+                    <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&q=80" alt="After renovation" class="after-img">
+                </div>
+                <div class="ba-slider-handle">
+                    <span class="sr-only">Drag to compare</span>
+                </div>
+            </div>
+            
+            <p class="text-center text-white/40 mt-8 text-sm tracking-wide reveal" style="transition-delay: 0.3s">
+                Heritage Villa Restoration — Tuscany, 2023
+            </p>
+        </div>
+    </section>
+    
+    <!-- Process Section -->
+    <section id="process" class="py-40 md:py-60" style="background: var(--sand)">
+        <div class="px-8 md:px-20 lg:px-40">
+            <div class="max-w-7xl mx-auto">
+                <div class="grid grid-cols-12 gap-8">
+                    <div class="col-span-12 md:col-span-2 reveal">
+                        <span class="section-number">03</span>
+                    </div>
+                    <div class="col-span-12 md:col-span-8">
+                        <h2 class="font-serif text-5xl md:text-7xl font-light reveal" style="transition-delay: 0.1s">
+                            Our Process
+                        </h2>
+                    </div>
+                </div>
+                
+                <div class="mt-24 grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
+                    <div class="reveal" style="transition-delay: 0.1s">
+                        <span class="font-serif text-6xl opacity-20">01</span>
+                        <h3 class="font-serif text-2xl mt-4 mb-4">Discovery</h3>
+                        <p class="text-sm opacity-60 leading-relaxed">
+                            Understanding your vision, lifestyle, and the unique characteristics of your site through immersive consultation.
+                        </p>
+                    </div>
+                    <div class="reveal" style="transition-delay: 0.2s">
+                        <span class="font-serif text-6xl opacity-20">02</span>
+                        <h3 class="font-serif text-2xl mt-4 mb-4">Concept</h3>
+                        <p class="text-sm opacity-60 leading-relaxed">
+                            Translating ideas into spatial narratives through sketches, models, and immersive 3D visualization.
+                        </p>
+                    </div>
+                    <div class="reveal" style="transition-delay: 0.3s">
+                        <span class="font-serif text-6xl opacity-20">03</span>
+                        <h3 class="font-serif text-2xl mt-4 mb-4">Development</h3>
+                        <p class="text-sm opacity-60 leading-relaxed">
+                            Refining every detail with precision engineering and sustainable material selection.
+                        </p>
+                    </div>
+                    <div class="reveal" style="transition-delay: 0.4s">
+                        <span class="font-serif text-6xl opacity-20">04</span>
+                        <h3 class="font-serif text-2xl mt-4 mb-4">Realization</h3>
+                        <p class="text-sm opacity-60 leading-relaxed">
+                            Guiding the construction process with meticulous oversight to ensure design integrity.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Stats Section -->
+    <section class="py-32 md:py-40" style="background: var(--charcoal-deep)">
+        <div class="px-8 md:px-20 lg:px-40">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
+                <div class="reveal" style="transition-delay: 0.1s">
+                    <span class="font-serif text-5xl md:text-7xl text-white">47</span>
+                    <p class="text-white/40 text-xs tracking-[0.3em] uppercase mt-4">Projects Completed</p>
+                </div>
+                <div class="reveal" style="transition-delay: 0.2s">
+                    <span class="font-serif text-5xl md:text-7xl text-white">16</span>
+                    <p class="text-white/40 text-xs tracking-[0.3em] uppercase mt-4">Years of Practice</p>
+                </div>
+                <div class="reveal" style="transition-delay: 0.3s">
+                    <span class="font-serif text-5xl md:text-7xl text-white">12</span>
+                    <p class="text-white/40 text-xs tracking-[0.3em] uppercase mt-4">Design Awards</p>
+                </div>
+                <div class="reveal" style="transition-delay: 0.4s">
+                    <span class="font-serif text-5xl md:text-7xl text-white">8</span>
+                    <p class="text-white/40 text-xs tracking-[0.3em] uppercase mt-4">Countries</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Contact Section -->
+    <section id="contact" class="py-40 md:py-60" style="background: var(--sand-light)">
+        <div class="px-8 md:px-20 lg:px-40">
+            <div class="max-w-7xl mx-auto">
+                <div class="grid grid-cols-12 gap-8">
+                    <div class="col-span-12 md:col-span-2 reveal">
+                        <span class="section-number">04</span>
+                    </div>
+                    <div class="col-span-12 md:col-span-8">
+                        <h2 class="font-serif text-5xl md:text-7xl lg:text-8xl font-light reveal" style="transition-delay: 0.1s">
+                            Let's create<br>
+                            <em class="font-light">something</em><br>
+                            enduring
+                        </h2>
+                        
+                        <div class="mt-20 grid grid-cols-1 md:grid-cols-2 gap-16">
+                            <div class="reveal" style="transition-delay: 0.2s">
+                                <p class="text-xs tracking-[0.3em] uppercase opacity-40 mb-4">New Projects</p>
+                                <a href="mailto:new@forma.studio" class="text-xl md:text-2xl hover:opacity-60 transition-opacity">new@forma.studio</a>
+                            </div>
+                            <div class="reveal" style="transition-delay: 0.3s">
+                                <p class="text-xs tracking-[0.3em] uppercase opacity-40 mb-4">Location</p>
+                                <p class="text-xl md:text-2xl">Los Angeles, California</p>
+                                <p class="opacity-60 mt-2">1245 Sunset Boulevard, Suite 400</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-20 reveal" style="transition-delay: 0.4s">
+                            <button class="btn-outline">
+                                <span>Start a Conversation</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="py-16 border-t" style="border-color: var(--sand-dark); background: var(--sand-light)">
+        <div class="px-8 md:px-20 lg:px-40">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+                <div class="flex items-center gap-8">
+                    <span class="font-serif text-2xl">FORMA</span>
+                    <span class="text-xs opacity-40">© 2024 All rights reserved</span>
+                </div>
+                <div class="flex gap-8 text-sm">
+                    <a href="#" class="opacity-60 hover:opacity-100 transition-opacity">Instagram</a>
+                    <a href="#" class="opacity-60 hover:opacity-100 transition-opacity">Pinterest</a>
+                    <a href="#" class="opacity-60 hover:opacity-100 transition-opacity">LinkedIn</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize variables first
+        const cursor = document.querySelector('.cursor');
+        const cursorDot = document.querySelector('.cursor-dot');
+        const hamburger = document.getElementById('hamburger');
+        const menu = document.getElementById('menu');
+        const menuLinks = document.querySelectorAll('.menu-item');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const hero = document.querySelector('.hero');
+        const progressBar = document.querySelector('.progress-bar');
+        const baSliders = document.querySelectorAll('.ba-slider');
+        
+        let mouseX = 0;
+        let mouseY = 0;
+        let cursorX = 0;
+        let cursorY = 0;
+        
+        // Custom Cursor
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            if (cursorDot) {
+                cursorDot.style.left = mouseX + 'px';
+                cursorDot.style.top = mouseY + 'px';
+            }
+        });
+        
+        // Smooth cursor animation
+        function animateCursor() {
+            cursorX += (mouseX - cursorX) * 0.1;
+            cursorY += (mouseY - cursorY) * 0.1;
+            
+            if (cursor) {
+                cursor.style.left = cursorX + 'px';
+                cursor.style.top = cursorY + 'px';
+            }
+            
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+        
+        // Cursor hover effect
+        const hoverElements = document.querySelectorAll('a, button, .project-card, .ba-slider-handle');
+        hoverElements.forEach(el => {
+            el.addEventListener('mouseenter', () => cursor && cursor.classList.add('hover'));
+            el.addEventListener('mouseleave', () => cursor && cursor.classList.remove('hover'));
+        });
+        
+        // Hamburger Menu
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            menu.classList.toggle('active');
+        });
+        
+        menuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                hamburger.classList.remove('active');
+                menu.classList.remove('active');
+            });
+        });
+        
+        // Scroll Progress Bar
+        function updateProgress() {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = Math.min(1, Math.max(0, scrollTop / docHeight));
+            progressBar.style.transform = `scaleX(${progress})`;
+        }
+        
+        // Hero Parallax
+        function updateHeroParallax() {
+            const scrolled = window.scrollY;
+            const heroHeight = hero.offsetHeight;
+            
+            if (scrolled < heroHeight) {
+                hero.classList.add('scrolled');
+            }
+        }
+        
+        // Parallax Background
+        const parallaxBgs = document.querySelectorAll('.parallax-bg');
+        function updateParallax() {
+            parallaxBgs.forEach(bg => {
+                const parent = bg.closest('.parallax-section');
+                const rect = parent.getBoundingClientRect();
+                const scrolled = -rect.top;
+                
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                    bg.style.transform = `translateY(${scrolled * 0.3}px)`;
+                }
+            });
+        }
+        
+        // Reveal Animations
+        const reveals = document.querySelectorAll('.reveal, .reveal-line');
+        
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        });
+        
+        reveals.forEach(el => revealObserver.observe(el));
+        
+        // Active Navigation
+        const sections = document.querySelectorAll('section[id]');
+        
+        const navObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === `#${id}`) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, {
+            threshold: 0.3
+        });
+        
+        sections.forEach(section => navObserver.observe(section));
+        
+        // Before/After Slider
+        baSliders.forEach(slider => {
+            const afterContainer = slider.querySelector('.ba-after');
+            const handle = slider.querySelector('.ba-slider-handle');
+            let isDragging = false;
+            
+            const updateSlider = (x) => {
+                const rect = slider.getBoundingClientRect();
+                let percentage = Math.max(0, Math.min(100, ((x - rect.left) / rect.width) * 100));
+                afterContainer.style.width = percentage + '%';
+                handle.style.left = percentage + '%';
+            };
+            
+            const startDrag = (e) => {
+                isDragging = true;
+                e.preventDefault();
+            };
+            
+            const doDrag = (e) => {
+                if (!isDragging) return;
+                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                updateSlider(clientX);
+            };
+            
+            const endDrag = () => {
+                isDragging = false;
+            };
+            
+            handle.addEventListener('mousedown', startDrag);
+            handle.addEventListener('touchstart', startDrag);
+            document.addEventListener('mousemove', doDrag);
+            document.addEventListener('touchmove', doDrag);
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+            
+            slider.addEventListener('click', (e) => {
+                updateSlider(e.clientX);
+            });
+        });
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Scroll handler
+        function onScroll() {
+            updateProgress();
+            updateHeroParallax();
+            updateParallax();
+        }
+        
+        window.addEventListener('scroll', onScroll, { passive: true });
+        
+        // Initial trigger for elements in view
+        setTimeout(() => {
+            reveals.forEach(el => {
+                const rect = el.getBoundingClientRect();
+                if (rect.top < window.innerHeight) {
+                    el.classList.add('active');
+                }
+            });
+        }, 100);
+    </script>
+</body>
+</html>
