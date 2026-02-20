@@ -1,13 +1,223 @@
-<h2>Moje Webové Projekty</h2>
-<ul>
-  <li><a href="https://san-ops67.github.io/1/">web1</a></li>
-  <li><a href="https://san-ops67.github.io/2/">web2</a></li>
-  <li><a href="https://san-ops67.github.io/3/">web3</a></li>
-  <li><a href="https://san-ops67.github.io/4/">web4</a></li>
-  <li><a href="https://san-ops67.github.io/5/">web5</a></li>
-  <li><a href="https://san-ops67.github.io/6/">web6</a></li>
-  <li><a href="https://san-ops67.github.io/7/">web7</a></li>
-  <li><a href="https://san-ops67.github.io/8/">web8</a></li>
-  <li><a href="https://san-ops67.github.io/9/">web9</a></li>
-  <li><a href="https://san-ops67.github.io/10/">web10</a></li>
-</ul>
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moje Webové Projekty</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom Styles for specific transitions -->
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #e4e4e7;
+        }
+        
+        /* Floating preview base styles */
+        #floating-preview {
+            transition: opacity 0.3s ease;
+            will-change: transform, opacity;
+        }
+        
+        /* Smooth gradient transition */
+        #preview-gradient {
+            transition: background 0.3s ease;
+        }
+
+        /* Hide preview on small screens as per design */
+        @media (max-width: 768px) {
+            #floating-preview {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans selection:bg-white selection:text-black overflow-x-hidden relative">
+
+    <!-- Background ambient light -->
+    <div class="fixed top-0 left-0 w-full h-full pointer-events-none opacity-20 z-0">
+        <div class="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-900/30 blur-[120px]"></div>
+        <div class="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-900/30 blur-[120px]"></div>
+    </div>
+
+    <!-- Floating Image Preview -->
+    <div id="floating-preview" class="fixed top-0 left-0 w-[300px] h-[200px] pointer-events-none z-50 rounded-xl overflow-hidden shadow-2xl opacity-0">
+        <div id="preview-gradient" class="w-full h-full bg-gradient-to-br p-6 flex flex-col justify-between">
+            <div class="flex justify-between items-start">
+                <i data-lucide="globe" class="text-white/50 w-6 h-6"></i>
+                <span id="preview-number" class="text-white/80 font-mono text-sm"></span>
+            </div>
+            <div class="text-white">
+                <h3 id="preview-title" class="text-2xl font-bold tracking-tight"></h3>
+                <p id="preview-category" class="text-white/80 text-sm mt-1"></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-6 py-20 relative z-10">
+        
+        <!-- Header Section -->
+        <header class="mb-24 flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-zinc-800 pb-12">
+            <div class="max-w-2xl">
+                <div class="flex items-center gap-3 mb-6">
+                    <i data-lucide="sparkles" class="w-5 h-5 text-zinc-400"></i>
+                    <span class="text-zinc-400 uppercase tracking-widest text-sm font-semibold">Archiv / 2026</span>
+                </div>
+                <h1 class="text-5xl md:text-7xl font-bold tracking-tighter text-white mb-6 leading-tight">
+                    Moje Webové <br class="hidden md:block" /> Projekty.
+                </h1>
+                <p class="text-lg text-zinc-400 leading-relaxed max-w-xl">
+                    Kolekce interaktivních digitálních zážitků, webových aplikací a kreativních konceptů. Prozkoumejte nejnovější práce.
+                </p>
+            </div>
+            <div class="flex items-center gap-4 text-zinc-500">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="code-2" class="w-4 h-4"></i>
+                    <span class="text-sm">HTML & JS</span>
+                </div>
+                <span>/</span>
+                <div class="flex items-center gap-2">
+                    <i data-lucide="layout" class="w-4 h-4"></i>
+                    <span id="project-count" class="text-sm">0 Projektů</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Project List -->
+        <div id="project-list" class="flex flex-col border-t border-zinc-800">
+            <!-- Projects will be injected here via JavaScript -->
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-32 pt-12 border-t border-zinc-800 flex flex-col md:flex-row justify-between items-center text-zinc-500 text-sm gap-4">
+            <p>© 2026 Moje Portfolio. Všechna práva vyhrazena.</p>
+            <div class="flex gap-6">
+                <a href="#" class="hover:text-white transition-colors">GitHub</a>
+                <a href="#" class="hover:text-white transition-colors">LinkedIn</a>
+                <a href="#" class="hover:text-white transition-colors">Twitter</a>
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        // Project Data
+        const projects = [
+            { id: 1, title: 'Web 1', url: 'https://san-ops67.github.io/1/', category: 'E-commerce', desc: 'Moderní nákupní platforma s důrazem na UX.', gradient: 'from-pink-500 via-red-500 to-yellow-500' },
+            { id: 2, title: 'Web 2', url: 'https://san-ops67.github.io/2/', category: 'Portfolio', desc: 'Kreativní prezentace pro digitální umělce.', gradient: 'from-blue-600 via-cyan-400 to-teal-300' },
+            { id: 3, title: 'Web 3', url: 'https://san-ops67.github.io/3/', category: 'WebGL Experience', desc: 'Interaktivní 3D zážitek v prohlížeči.', gradient: 'from-indigo-900 via-purple-700 to-pink-500' },
+            { id: 4, title: 'Web 4', url: 'https://san-ops67.github.io/4/', category: 'SaaS Platform', desc: 'Dashboard a správa dat pro B2B sektor.', gradient: 'from-emerald-500 via-green-400 to-lime-300' },
+            { id: 5, title: 'Web 5', url: 'https://san-ops67.github.io/5/', category: 'Corporate', desc: 'Korporátní identita a firemní prezentace.', gradient: 'from-slate-800 via-slate-600 to-slate-400' },
+            { id: 6, title: 'Web 6', url: 'https://san-ops67.github.io/6/', category: 'Blog', desc: 'Minimalistický redakční systém.', gradient: 'from-orange-400 via-amber-300 to-yellow-200' },
+            { id: 7, title: 'Web 7', url: 'https://san-ops67.github.io/7/', category: 'Web App', desc: 'Progresivní webová aplikace pro produktivitu.', gradient: 'from-violet-600 via-fuchsia-500 to-pink-500' },
+            { id: 8, title: 'Web 8', url: 'https://san-ops67.github.io/8/', category: 'Landing Page', desc: 'Konverzní stránka pro nový produkt.', gradient: 'from-cyan-500 via-blue-500 to-indigo-600' },
+            { id: 9, title: 'Web 9', url: 'https://san-ops67.github.io/9/', category: 'Social', desc: 'Komunitní fórum s reálným časem.', gradient: 'from-rose-500 via-red-400 to-orange-400' },
+            { id: 10, title: 'Web 10', url: 'https://san-ops67.github.io/10/', category: 'Experimental', desc: 'Experimentální UI/UX koncepty.', gradient: 'from-gray-900 via-purple-900 to-violet-600' },
+        ];
+
+        // Update Project Count in Header
+        document.getElementById('project-count').textContent = `${projects.length} Projektů`;
+
+        // Render Projects
+        const projectList = document.getElementById('project-list');
+        
+        projects.forEach((project, index) => {
+            const formattedIndex = index + 1 < 10 ? `0${index + 1}` : index + 1;
+            
+            const projectHTML = `
+                <a href="${project.url}" target="_blank" rel="noopener noreferrer"
+                   class="project-row group relative flex flex-col md:flex-row md:items-center justify-between py-8 md:py-12 border-b border-zinc-800 transition-colors duration-300 hover:bg-zinc-900/50 px-4 -mx-4 rounded-xl"
+                   data-index="${index}">
+                    
+                    <!-- Left Column: Number & Title -->
+                    <div class="flex items-baseline gap-6 md:gap-12 mb-4 md:mb-0">
+                        <span class="text-zinc-600 font-mono text-lg md:text-xl font-light w-8 pointer-events-none">${formattedIndex}</span>
+                        <h2 class="text-3xl md:text-5xl font-bold text-zinc-300 group-hover:text-white transition-colors duration-300 tracking-tight pointer-events-none">
+                            ${project.title}
+                        </h2>
+                    </div>
+
+                    <!-- Right Column: Meta & Icon -->
+                    <div class="flex items-center justify-between md:justify-end gap-8 md:gap-16 w-full md:w-auto md:ml-auto ml-14">
+                        <div class="flex flex-col md:items-end pointer-events-none">
+                            <span class="text-zinc-300 font-medium">${project.category}</span>
+                            <span class="text-zinc-500 text-sm mt-1">${project.desc}</span>
+                        </div>
+                        
+                        <!-- Arrow Icon -->
+                        <div class="w-12 h-12 rounded-full border border-zinc-700 flex items-center justify-center group-hover:bg-white group-hover:border-white transition-all duration-300 flex-shrink-0">
+                            <i data-lucide="arrow-up-right" class="w-6 h-6 text-zinc-400 group-hover:text-black transition-colors duration-300"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Mobile Only Background Gradient Line -->
+                    <div class="absolute bottom-0 left-0 h-[2px] w-full bg-gradient-to-r ${project.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 md:hidden rounded-full pointer-events-none"></div>
+                </a>
+            `;
+            
+            projectList.insertAdjacentHTML('beforeend', projectHTML);
+        });
+
+        // Initialize Lucide Icons after injecting HTML
+        lucide.createIcons();
+
+        // Floating Preview Logic
+        const floatingPreview = document.getElementById('floating-preview');
+        const previewGradient = document.getElementById('preview-gradient');
+        const previewNumber = document.getElementById('preview-number');
+        const previewTitle = document.getElementById('preview-title');
+        const previewCategory = document.getElementById('preview-category');
+        
+        let mouseX = 0;
+        let mouseY = 0;
+        let isHovering = false;
+        let currentGradientClasses = [];
+
+        // Track mouse movement globally for smooth transform updates
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // Use requestAnimationFrame for performance
+            requestAnimationFrame(() => {
+                floatingPreview.style.transform = `translate(${mouseX + 20}px, ${mouseY + 20}px)`;
+            });
+        });
+
+        // Add hover event listeners to each project row
+        document.querySelectorAll('.project-row').forEach(row => {
+            row.addEventListener('mouseenter', (e) => {
+                const index = e.currentTarget.getAttribute('data-index');
+                const project = projects[index];
+                
+                // Update content
+                const formattedIndex = parseInt(index) + 1 < 10 ? `0${parseInt(index) + 1}` : parseInt(index) + 1;
+                previewNumber.textContent = formattedIndex;
+                previewTitle.textContent = project.title;
+                previewCategory.textContent = project.category;
+                
+                // Update gradient classes
+                if (currentGradientClasses.length > 0) {
+                    previewGradient.classList.remove(...currentGradientClasses);
+                }
+                currentGradientClasses = project.gradient.split(' ');
+                previewGradient.classList.add(...currentGradientClasses);
+                
+                // Show preview
+                isHovering = true;
+                floatingPreview.style.opacity = '1';
+            });
+
+            row.addEventListener('mouseleave', () => {
+                isHovering = false;
+                floatingPreview.style.opacity = '0';
+            });
+        });
+    </script>
+</body>
+</html>
