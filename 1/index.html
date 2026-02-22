@@ -3,12 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Portfolio | Jméno Příjmení</title>
+    <title>Portfolio | Ethan Wright</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- IMPORT MAP PRO THREE.JS -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+            }
+        }
+    </script>
+
     <style>
         /* --- 1. ZÁKLADNÍ NASTAVENÍ --- */
         :root {
@@ -16,6 +25,8 @@
             --text: #050505;
             --text-light: #555555;
             --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+            --glitch-red: rgba(255, 0, 80, 0.5);
+            --glitch-blue: rgba(0, 255, 255, 0.5);
         }
 
         *, *::before, *::after {
@@ -120,6 +131,7 @@
         main { width: 100%; position: relative; z-index: 100; }
         
         .hero { height: 100vh; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
+        .hero-name { font-family: 'Inter', sans-serif; font-size: 1rem; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 30px; color: var(--text-light); }
         h1 { font-family: 'Syne', sans-serif; font-size: 11vw; line-height: 0.85; text-align: center; color: var(--text); letter-spacing: -0.04em; margin: 0; overflow: hidden; width: 100%; }
         .role { font-family: 'Inter', sans-serif; margin-top: 30px; text-transform: uppercase; letter-spacing: 2px; font-size: 0.9rem; color: var(--text-light); opacity: 0; animation: fadeUp 1s ease 1s forwards; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -136,6 +148,81 @@
 
         section { padding: 120px 50px; border-top: 1px solid #eee; background: rgba(255,255,255,0.85); backdrop-filter: blur(5px); width: 100%; }
         .section-headline { font-family: 'Syne', sans-serif; font-size: 3.5rem; font-weight: 700; margin: 0 0 50px 0; max-width: 900px; line-height: 1.1; }
+
+        /* --- ABOUT SEKCE S GLITCH EFEKTEM --- */
+        .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-top: 40px; }
+        .about-text-content { display: flex; flex-direction: column; gap: 20px; }
+        
+        .about-image-container { 
+            position: relative; 
+            border-radius: 20px; 
+            overflow: visible; 
+            perspective: 1000px; /* Pro 3D tilt efekt */
+        }
+        
+        /* Glitch Container */
+        .about-image-inner { 
+            border-radius: 20px; 
+            overflow: hidden; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05); 
+            position: relative; 
+            background: #000;
+            transition: transform 0.5s var(--ease-out-expo);
+        }
+
+        .about-image-inner img { 
+            width: 100%; 
+            height: auto; 
+            display: block; 
+            filter: grayscale(100%); 
+            transition: filter 0.6s var(--ease-out-expo);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Glitch Layers */
+        .glitch-layer {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=800&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .about-image-container:hover .about-image-inner img { filter: grayscale(0%); }
+
+        /* Glitch Animation Classes */
+        .about-image-container:hover .glitch-layer {
+            opacity: 0.5;
+            animation: glitch-anim 0.2s infinite;
+        }
+        .about-image-container:hover .glitch-layer:nth-child(2) {
+            filter: grayscale(0%) contrast(1.5) hue-rotate(90deg);
+            animation-delay: 0.1s;
+        }
+
+        @keyframes glitch-anim {
+            0% { transform: translate(0); clip-path: inset(10% 0 30% 0); }
+            20% { transform: translate(-5px, 5px); clip-path: inset(40% 0 10% 0); }
+            40% { transform: translate(5px, -5px); clip-path: inset(60% 0 5% 0); }
+            60% { transform: translate(-5px, 0); clip-path: inset(10% 0 70% 0); }
+            80% { transform: translate(5px, 2px); clip-path: inset(5% 0 20% 0); }
+            100% { transform: translate(0); clip-path: inset(10% 0 30% 0); }
+        }
+
+        .about-tags { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+        .about-tag { padding: 8px 18px; border: 1px solid #eee; border-radius: 50px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text); transition: all 0.3s; cursor: default; }
+        .about-tag:hover { background: var(--text); color: var(--bg); border-color: var(--text); transform: translateY(-3px); }
+
+        .floating-stat-card { position: absolute; bottom: -20px; left: -20px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); padding: 25px 30px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,0.5); z-index: 5; transition: transform 0.5s var(--ease-out-expo); pointer-events: none; }
+        .about-image-container:hover .floating-stat-card { transform: translateY(-15px) rotate(-2deg); }
+        .floating-stat-card .stat-num { font-family: 'Syne', sans-serif; font-size: 3rem; font-weight: 800; display: block; line-height: 1; margin-bottom: 5px; color: var(--text); }
+        .floating-stat-card .stat-label { font-family: 'Inter', sans-serif; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text-light); }
+
+        /* --- KONEC ABOUT UPRAV --- */
 
         .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; width: 100%; }
         .service-card { padding: 30px; border: 1px solid #eee; background: #fff; transition: transform 0.3s; }
@@ -182,6 +269,9 @@
             .service-card:hover { transform: none; } .project-item { flex-direction: column; gap: 10px; } .project-name { font-size: 1.8rem; }
             .email-link { font-size: 1.5rem; } .social-links { gap: 20px; } .footer-meta { flex-direction: column; gap: 10px; }
             #loader { padding: 20px; }
+            .about-grid { grid-template-columns: 1fr; gap: 40px; margin-top: 20px; }
+            .floating-stat-card { bottom: 10px; left: 10px; padding: 15px 20px; }
+            .floating-stat-card .stat-num { font-size: 2rem; }
         }
     </style>
 </head>
@@ -199,22 +289,23 @@
     <canvas id="pixel-canvas"></canvas>
 
     <div id="menu-overlay">
-        <button class="close-btn" onclick="toggleMenu()">Zavřít</button>
+        <button class="close-btn" onclick="toggleMenu()">Close</button>
         <ul class="menu-links">
-            <li><a href="#about" class="menu-link" onclick="closeMenu()" style="transition-delay: 0.05s">O mně</a></li>
-            <li><a href="#services" class="menu-link" onclick="closeMenu()" style="transition-delay: 0.1s">Služby</a></li>
-            <li><a href="#projects" class="menu-link" onclick="closeMenu()" style="transition-delay: 0.15s">Projekty</a></li>
-            <li><a href="#contact" class="menu-link" onclick="closeMenu()" style="transition-delay: 0.2s">Kontakt</a></li>
+            <li><a href="#about" class="menu-link" onclick="closeMenu()" style="transition-delay: 0.05s">About</a></li>
+            <li><a href="#services" class="menu-link" onclick="closeMenu()" style="transition-delay: 0.1s">Services</a></li>
+            <li><a href="#projects" class="menu-link" onclick="closeMenu()" style="transition-delay: 0.15s">Work</a></li>
+            <li><a href="#contact" class="menu-link" onclick="closeMenu()" style="transition-delay: 0.2s">Contact</a></li>
         </ul>
     </div>
 
     <nav id="navbar">
-        <div class="logo">PORTFOLIO.</div>
-        <button class="menu-btn" onclick="toggleMenu()">Menu +</button>
+        <div class="logo magnetic">PORTFOLIO.</div>
+        <button class="menu-btn magnetic" onclick="toggleMenu()">Menu +</button>
     </nav>
 
     <main>
         <div class="hero">
+            <span class="hero-name reveal-text">Ethan Wright</span>
             <h1 class="hero-title">DIGITAL<br>DESIGNER</h1>
             <div class="role">Creative Developer & 3D Artist</div>
         </div>
@@ -233,34 +324,58 @@
         </div>
 
         <section id="about">
-            <h2 class="section-headline reveal-text">Tvořím digitální zážitky, které propojují umění a kód.</h2>
-            <p class="reveal-text" style="font-size: 1.2rem; max-width: 800px; line-height: 1.6; transition-delay: 0.1s;">
-                Jsem vývojář posedlý detaily. Věřím, že web není jen o informacích, ale o pocitu. Používám Three.js, WebGL a moderní animace k vytvoření něčeho, co si lidé zapamatují.
-            </p>
+            <h2 class="section-headline reveal-text">I don't just build websites.<br>I <span style="font-style: italic; color: var(--text-light); font-weight: 500;">design</span> digital<br>realities.</h2>
+            <div class="about-grid">
+                <div class="about-text-content">
+                    <p class="reveal-text" style="font-size: 1.2rem; line-height: 1.6; transition-delay: 0.1s; margin-top: 0;">
+                        I am a developer obsessed with details. I believe the web isn't just about information, it's about a feeling. I use Three.js, WebGL, and modern animations to create something people will remember.
+                    </p>
+                    <div class="about-tags reveal-text" style="transition-delay: 0.15s;">
+                        <span class="about-tag">Three.js</span>
+                        <span class="about-tag">WebGL</span>
+                        <span class="about-tag">Creative UI</span>
+                        <span class="about-tag">Motion</span>
+                    </div>
+                </div>
+                <div class="about-image-container reveal-text" style="transition-delay: 0.2s;">
+                    <div class="about-image-inner" id="glitch-wrapper">
+                        <!-- Glitch vrstvy -->
+                        <div class="glitch-layer"></div>
+                        <div class="glitch-layer"></div>
+                        <!-- Hlavní fotka -->
+                        <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=800&auto=format&fit=crop" alt="Portrét vývojáře" onerror="this.onerror=null;this.src='https://via.placeholder.com/800x1000?text=Foto+profilu';">
+                    </div>
+                    
+                    <div class="floating-stat-card">
+                        <span class="stat-num">5+</span>
+                        <span class="stat-label">Years of Exp.</span>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section id="services">
-            <h2 class="section-headline reveal-text">Služby</h2>
+            <h2 class="section-headline reveal-text">Services</h2>
             <div class="services-grid">
                 <div class="service-card reveal-text" style="transition-delay: 0.1s;">
                     <span class="service-title">Web Design</span>
-                    <p>Minimalistický, čistý design zaměřený na typografii a prostor.</p>
+                    <p>Minimalist, clean design focused on typography and space.</p>
                 </div>
                 <div class="service-card reveal-text" style="transition-delay: 0.2s;">
                     <span class="service-title">3D Development</span>
-                    <p>Interaktivní 3D scény, které fungují plynule přímo v prohlížeči.</p>
+                    <p>Interactive 3D scenes running smoothly right in the browser.</p>
                 </div>
                 <div class="service-card reveal-text" style="transition-delay: 0.3s;">
                     <span class="service-title">Motion</span>
-                    <p>Pokročilé animace a mikro-interakce pro prémiový dojem.</p>
+                    <p>Advanced animations and micro-interactions for a premium feel.</p>
                 </div>
             </div>
         </section>
 
         <section id="projects">
-            <h2 class="section-headline reveal-text">Vybrané práce</h2>
+            <h2 class="section-headline reveal-text">Selected Work</h2>
             
-            <a href="#" class="project-item reveal-text">
+            <a href="javascript:void(0)" class="project-item reveal-text magnetic">
                 <h2 class="project-name">Neon Gallery</h2>
                 <span>Web / 3D</span>
             </a>
@@ -276,21 +391,21 @@
 
         <footer id="contact">
             <div class="footer-content">
-                <span class="reveal-text section-label" style="text-transform: uppercase; color: #666; font-size: 0.9rem;">Spolupráce</span>
-                <h2 class="reveal-text section-headline" style="margin-top: 20px; font-size: 2.5rem;">Máte nápad?<br>Pojďme ho realizovat.</h2>
+                <span class="reveal-text section-label" style="text-transform: uppercase; color: #666; font-size: 0.9rem;">Collaboration</span>
+                <h2 class="reveal-text section-headline" style="margin-top: 20px; font-size: 2.5rem;">Have an idea?<br>Let's make it real.</h2>
                 
-                <a href="mailto:hello@example.com" class="email-link reveal-text">hello@email.com</a>
+                <a href="mailto:hello@example.com" class="email-link reveal-text magnetic">hello@email.com</a>
                 
                 <div class="social-links reveal-text">
-                    <a href="javascript:void(0)" class="social-link">Instagram</a>
-                    <a href="javascript:void(0)" class="social-link">Twitter / X</a>
-                    <a href="javascript:void(0)" class="social-link">LinkedIn</a>
-                    <a href="javascript:void(0)" class="social-link">GitHub</a>
+                    <a href="javascript:void(0)" class="social-link magnetic">Instagram</a>
+                    <a href="javascript:void(0)" class="social-link magnetic">Twitter / X</a>
+                    <a href="javascript:void(0)" class="social-link magnetic">LinkedIn</a>
+                    <a href="javascript:void(0)" class="social-link magnetic">GitHub</a>
                 </div>
             </div>
 
             <div class="footer-meta reveal-text">
-                <span>© 2026 Jméno Příjmení</span>
+                <span>© 2026 Ethan Wright</span>
                 <span>All rights reserved.</span>
             </div>
         </footer>
@@ -375,9 +490,30 @@
         }
         marqueeContent.innerHTML += marqueeContent.innerHTML;
         animateMarquee();
+
+        // MAGNETIC TILT EFEKT PRO FOTKU
+        const glitchWrapper = document.getElementById('glitch-wrapper');
+        if (glitchWrapper) {
+            glitchWrapper.parentElement.addEventListener('mousemove', (e) => {
+                const rect = glitchWrapper.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = (y - centerY) / 20;
+                const rotateY = (centerX - x) / 20;
+                
+                glitchWrapper.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            });
+            
+            glitchWrapper.parentElement.addEventListener('mouseleave', () => {
+                glitchWrapper.style.transform = `rotateX(0deg) rotateY(0deg)`;
+            });
+        }
     </script>
 
-    <!-- 3D SKLO S KLIK ROTACÍ (BEZ GLOW) -->
+    <!-- 3D SKLO S KLIK ROTACÍ -->
     <script type="module">
         import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
@@ -410,8 +546,6 @@
         let targetRotationY = 0;
         let currentRotationY = 0;
         let mouseX = 0, mouseY = 0;
-        
-        // Nová proměnná pro impuls po kliknutí
         let clickRotationVelocity = 0;
 
         window.addEventListener('mousemove', (e) => {
@@ -419,10 +553,12 @@
             mouseY = (e.clientY - window.innerHeight/2) * 0.0005;
         });
 
-        // Přidání impulzu při kliknutí (jen na desktopu, na mobilu to může rušit)
-        window.addEventListener('mousedown', () => {
+        window.addEventListener('mousedown', (e) => {
+            // Zabránit roztočení, pokud klikáme na fotku (aby fungoval glitch bez otáčení uzlu)
+            if (e.target.closest('.about-image-container')) return;
+            
             if (window.innerWidth > 768) {
-                clickRotationVelocity = 0.2; // Síla roztočení
+                clickRotationVelocity = 0.2;
             }
         });
 
@@ -430,12 +566,8 @@
             targetRotationY += e.deltaX * 0.005;
         }, { passive: true });
 
-        // Mobile touch logic
-        let touchStartX = 0;
-        let touchPreviousX = 0;
-        let touchStartY = 0;
-        let touchPreviousY = 0;
-
+        // Mobile touch
+        let touchStartX = 0, touchPreviousX = 0, touchStartY = 0, touchPreviousY = 0;
         window.addEventListener('touchstart', (e) => {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
@@ -463,13 +595,10 @@
             const baseRotationX = Math.sin(t * 0.3) * 0.3 + mouseY;
             const baseRotationY = t * 0.2 + mouseX;
 
-            // Aplikace fyziky scrollu
             targetRotationY *= 0.95; 
             currentRotationY += targetRotationY;
-
-            // Aplikace fyziky kliknutí
             currentRotationY += clickRotationVelocity;
-            clickRotationVelocity *= 0.95; // Postupné zpomalování
+            clickRotationVelocity *= 0.95;
 
             mesh.rotation.x = baseRotationX;
             mesh.rotation.y = baseRotationY + currentRotationY;
@@ -486,7 +615,7 @@
         });
     </script>
 
-    <!-- PIXEL EFEKT (KULATÉ PIXELY) -->
+    <!-- PIXEL EFEKT -->
     <script>
         const canvas = document.getElementById('pixel-canvas');
         if (window.innerWidth > 768) {
@@ -508,7 +637,6 @@
                 draw() {
                     if (this.alpha > 0.01) {
                         ctx.fillStyle = `rgba(0,0,0,${this.alpha})`;
-                        // ZMĚNA: Vykreslení kruhu místo čtverce
                         const radius = (this.size * this.scale) / 2;
                         ctx.beginPath();
                         ctx.arc(this.x + this.size / 2, this.y + this.size / 2, radius, 0, Math.PI * 2);
@@ -532,6 +660,7 @@
             }
 
             window.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.about-image-container')) return;
                 waves.push(new Wave(e.clientX, e.clientY));
             });
 
