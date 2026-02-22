@@ -63,7 +63,54 @@
         ul { list-style: none; padding: 0; margin: 0; }
         button { border: none; background: none; cursor: pointer; color: inherit; font-family: inherit; }
 
-        /* --- VLASTNÍ KURZOR (AWWWARDS STYLE) --- */
+        /* --- AWWWARDS PRVKY --- */
+        /* Jemný šum přes celou obrazovku */
+        .noise-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 800; opacity: 0.04;
+            background-image: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+        }
+
+        /* Scroll Progress Bar */
+        .scroll-progress {
+            position: fixed; top: 0; left: 0; height: 3px; background: var(--text);
+            z-index: 10000; width: 0%; transform-origin: left;
+        }
+
+        /* Obří typografický watermark na pozadí */
+        .bg-watermark {
+            position: fixed; top: 40%; left: -5%; font-family: 'Syne', sans-serif;
+            font-size: 18vw; font-weight: 800; color: transparent;
+            -webkit-text-stroke: 1px rgba(0,0,0,0.03); pointer-events: none;
+            z-index: 0; transform: rotate(-90deg) translateY(-50%); white-space: nowrap;
+            will-change: transform;
+        }
+
+        /* Technické detaily v rozích */
+        .tech-details {
+            position: absolute; bottom: 40px; right: 50px; font-family: 'Inter', sans-serif;
+            font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text-light);
+            text-align: right; line-height: 1.6; z-index: 100;
+        }
+        .tech-details span { display: block; }
+
+        /* Scroll Indicator v Hero */
+        .scroll-indicator {
+            position: absolute; bottom: 100px; left: 50px; display: flex; align-items: center; gap: 15px;
+            transform: rotate(-90deg); transform-origin: left bottom; z-index: 100; pointer-events: none;
+        }
+        .scroll-text { font-family: 'Inter', sans-serif; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text); }
+        .scroll-line-wrapper { width: 60px; height: 1px; background: rgba(0,0,0,0.2); position: relative; overflow: hidden; }
+        .scroll-line-inner { position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--text); animation: scroll-line-anim 2s cubic-bezier(0.19, 1, 0.22, 1) infinite; }
+        @keyframes scroll-line-anim { 0% { left: -100%; } 50% { left: 0; } 100% { left: 100%; } }
+
+        /* Architektonický Grid v Hero */
+        .hero-grid {
+            position: absolute; inset: 0; pointer-events: none; z-index: 1; display: flex; justify-content: space-between; padding: 0 15vw;
+        }
+        .hero-grid-line { width: 1px; height: 100vh; background: rgba(0,0,0,0.03); }
+
+        /* --- VLASTNÍ KURZOR --- */
         #custom-cursor {
             position: fixed;
             top: 0;
@@ -82,7 +129,9 @@
             width: 80px;
             height: 80px;
         }
-        @media (max-width: 768px) { #custom-cursor { display: none; } }
+        @media (max-width: 768px) { 
+            #custom-cursor, .bg-watermark, .tech-details, .scroll-indicator, .hero-grid { display: none; } 
+        }
 
         /* --- 2. VRSTVY --- */
         #webgl-glass { 
@@ -92,7 +141,7 @@
         
         #pixel-canvas { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            z-index: 10; pointer-events: auto; cursor: crosshair; display: block;
+            z-index: 10; pointer-events: auto; display: block;
         }
         @media (max-width: 768px) { #pixel-canvas { display: none !important; pointer-events: none; } }
 
@@ -158,7 +207,9 @@
         /* MAIN CONTENT */
         main { width: 100%; position: relative; z-index: 100; }
         
-        .hero { height: 100vh; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
+        .hero { height: 100vh; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; position: relative; }
+        
+        .hero-content { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; }
         .hero-name { font-family: 'Inter', sans-serif; font-size: 1rem; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 30px; color: var(--text-light); }
         h1 { font-family: 'Syne', sans-serif; font-size: 11vw; line-height: 0.85; text-align: center; color: var(--text); letter-spacing: -0.04em; margin: 0; overflow: hidden; width: 100%; }
         .role { font-family: 'Inter', sans-serif; margin-top: 30px; text-transform: uppercase; letter-spacing: 2px; font-size: 0.9rem; color: var(--text-light); opacity: 0; animation: fadeUp 1s ease 1s forwards; }
@@ -169,29 +220,103 @@
         .reveal-text { opacity: 0; transform: translateY(30px); transition: all 1s var(--ease-out-expo); }
         .reveal-text.active { opacity: 1; transform: translateY(0); }
 
-        .marquee-wrapper { width: 100%; overflow: hidden; border-top: 1px solid #111; border-bottom: 1px solid #111; background: #fff; padding: 20px 0; margin: 50px 0; display: flex; align-items: center; position: relative; pointer-events: auto; }
+        .marquee-wrapper { width: 100%; overflow: hidden; border-top: 1px solid #111; border-bottom: 1px solid #111; background: #fff; padding: 20px 0; display: flex; align-items: center; position: relative; pointer-events: auto; }
         .marquee-content { display: flex; white-space: nowrap; }
         .marquee-item { font-family: 'Syne', sans-serif; font-size: 5rem; font-weight: 800; text-transform: uppercase; padding: 0 40px; color: transparent; -webkit-text-stroke: 1px #000; position: relative; }
         .marquee-item::after { content: "✦"; font-size: 2rem; position: absolute; right: -10px; top: 50%; transform: translateY(-50%); color: #000; -webkit-text-stroke: 0; }
 
-        section { padding: 120px 50px; border-top: 1px solid #eee; background: rgba(255,255,255,0.85); backdrop-filter: blur(5px); width: 100%; }
-        .section-headline { font-family: 'Syne', sans-serif; font-size: 3.5rem; font-weight: 700; margin: 0 0 50px 0; max-width: 900px; line-height: 1.1; }
+        section { padding: 150px 50px; border-top: 1px solid #eee; background: rgba(255,255,255,0.85); backdrop-filter: blur(5px); width: 100%; position: relative; z-index: 10; overflow: hidden; }
+        .section-headline { font-family: 'Syne', sans-serif; font-size: 3.5rem; font-weight: 700; margin: 0 0 50px 0; max-width: 900px; line-height: 1.3; padding-bottom: 15px; position: relative; z-index: 2; }
+
+        /* --- DEKORATIVNÍ AWWWARDS PRVKY PRO ABOUT --- */
+        .section-meta { display: flex; align-items: center; gap: 20px; font-family: 'Inter', sans-serif; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 3px; color: var(--text-light); margin-bottom: 30px; position: relative; z-index: 2; }
+        .meta-line { width: 50px; height: 1px; background: rgba(0,0,0,0.2); }
+        
+        .about-bg-watermark { position: absolute; top: 10%; right: -5%; font-family: 'Syne', sans-serif; font-size: 15vw; font-weight: 800; color: transparent; -webkit-text-stroke: 1px rgba(0,0,0,0.03); pointer-events: none; z-index: 0; white-space: nowrap; user-select: none; }
+        
+        .deco-cross { position: absolute; color: rgba(0,0,0,0.3); font-size: 1.2rem; font-weight: 300; font-family: 'Inter', sans-serif; pointer-events: none; z-index: 1; }
+        .deco-cross.tl { top: 40px; left: 40px; }
+        .deco-cross.tr { top: 40px; right: 40px; }
+        .deco-cross.bl { bottom: 40px; left: 40px; }
+        .deco-cross.br { bottom: 40px; right: 40px; }
+
+        /* --- NOVÝ PRVEK: AVAILABILITY STATUS --- */
+        .availability-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 50px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text);
+            margin-left: 10px;
+            cursor: default;
+            transition: border-color 0.3s;
+        }
+        .availability-status:hover {
+            border-color: rgba(0,0,0,0.3);
+        }
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            position: relative;
+        }
+        .pulse-dot::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border: 1px solid #10b981;
+            border-radius: 50%;
+            animation: pulse-anim 2s cubic-bezier(0.19, 1, 0.22, 1) infinite;
+        }
+        @keyframes pulse-anim {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
 
         /* --- ABOUT SEKCE S GLITCH EFEKTEM --- */
-        .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-top: 40px; }
+        .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-top: 40px; position: relative; z-index: 2; }
         .about-text-content { display: flex; flex-direction: column; gap: 20px; }
         
         .about-image-container { 
             position: relative; 
             border-radius: 20px; 
             overflow: visible; 
-            perspective: 1000px; /* Pro 3D tilt efekt */
-            max-width: 420px; /* Zmenšení fotky */
+            perspective: 1000px; 
+            max-width: 420px; 
             width: 100%;
-            margin-left: auto; /* Zarovnání doprava */
+            margin-left: auto; 
+            z-index: 5;
         }
         
-        /* Glitch Container */
+        /* --- NOVÝ EFEKT: TECH FRAME KOLEM FOTKY --- */
+        .tech-frame { position: absolute; inset: -10px; border: 1px solid rgba(0,0,0,0.05); border-radius: 26px; z-index: 0; pointer-events: none; transition: inset 0.6s var(--ease-out-expo), border-color 0.6s; }
+        .about-image-container:hover .tech-frame { inset: -20px; border-color: rgba(0,0,0,0.15); }
+        .tech-frame-bg { position: absolute; inset: 0; border-radius: 26px; overflow: hidden; }
+        .scanner-line { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, var(--text), transparent); opacity: 0; transition: opacity 0.3s; }
+        .about-image-container:hover .scanner-line { opacity: 0.3; animation: scan-anim 2s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
+        @keyframes scan-anim { 0% { top: -10%; } 100% { top: 110%; } }
+        
+        .tech-frame::before, .tech-frame::after, .tech-frame-inner::before, .tech-frame-inner::after { content: ''; position: absolute; width: 20px; height: 20px; border-color: var(--text); border-style: solid; opacity: 0.2; transition: width 0.5s var(--ease-out-expo), height 0.5s var(--ease-out-expo), opacity 0.5s; }
+        .tech-frame::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; border-top-left-radius: 26px; }
+        .tech-frame::after { top: -1px; right: -1px; border-width: 2px 2px 0 0; border-top-right-radius: 26px; }
+        .tech-frame-inner { position: absolute; inset: 0; pointer-events: none; }
+        .tech-frame-inner::before { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; border-bottom-left-radius: 26px; }
+        .tech-frame-inner::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; border-bottom-right-radius: 26px; }
+        
+        .about-image-container:hover .tech-frame::before, .about-image-container:hover .tech-frame::after,
+        .about-image-container:hover .tech-frame-inner::before, .about-image-container:hover .tech-frame-inner::after { width: 40px; height: 40px; opacity: 0.8; }
+        /* --- KONEC EFEKTU --- */
+        
         .about-image-inner { 
             border-radius: 20px; 
             overflow: hidden; 
@@ -199,6 +324,7 @@
             position: relative; 
             background: #000;
             transition: transform 0.5s var(--ease-out-expo);
+            z-index: 2;
         }
 
         .about-image-inner img { 
@@ -211,7 +337,6 @@
             z-index: 1;
         }
 
-        /* Glitch Layers */
         .glitch-layer {
             position: absolute;
             top: 0; left: 0;
@@ -225,15 +350,8 @@
 
         .about-image-container:hover .about-image-inner img { filter: grayscale(0%); }
 
-        /* Glitch Animation Classes */
-        .about-image-container:hover .glitch-layer {
-            opacity: 0.5;
-            animation: glitch-anim 0.2s infinite;
-        }
-        .about-image-container:hover .glitch-layer:nth-child(2) {
-            filter: grayscale(0%) contrast(1.5) hue-rotate(90deg);
-            animation-delay: 0.1s;
-        }
+        .about-image-container:hover .glitch-layer { opacity: 0.5; animation: glitch-anim 0.2s infinite; }
+        .about-image-container:hover .glitch-layer:nth-child(2) { filter: grayscale(0%) contrast(1.5) hue-rotate(90deg); animation-delay: 0.1s; }
 
         @keyframes glitch-anim {
             0% { transform: translate(0); clip-path: inset(10% 0 30% 0); }
@@ -244,7 +362,7 @@
             100% { transform: translate(0); clip-path: inset(10% 0 30% 0); }
         }
 
-        .about-tags { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+        .about-tags { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; align-items: center; }
         .about-tag { padding: 8px 18px; border: 1px solid #eee; border-radius: 50px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text); transition: all 0.3s; cursor: default; }
         .about-tag:hover { background: var(--text); color: var(--bg); border-color: var(--text); transform: translateY(-3px); }
 
@@ -253,61 +371,170 @@
         .floating-stat-card .stat-num { font-family: 'Syne', sans-serif; font-size: 3rem; font-weight: 800; display: block; line-height: 1; margin-bottom: 5px; color: var(--text); }
         .floating-stat-card .stat-label { font-family: 'Inter', sans-serif; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text-light); }
 
-        /* --- KONEC ABOUT UPRAV --- */
+        /* --- DALŠÍ AWWWARDS DEKORACE --- */
+        .global-center-line { position: fixed; top: 0; left: 50%; width: 1px; height: 100vh; background: rgba(0,0,0,0.03); z-index: 0; pointer-events: none; }
+        
+        .services-bg-num { position: absolute; top: -50px; right: -5%; font-family: 'Syne', sans-serif; font-size: 35vw; font-weight: 800; color: transparent; -webkit-text-stroke: 1px rgba(0,0,0,0.03); z-index: 0; pointer-events: none; line-height: 1; user-select: none; }
+        .services-content-wrapper { position: relative; z-index: 2; width: 100%; }
+        
+        .vertical-side-text { position: absolute; right: 20px; top: 200px; transform: rotate(90deg); transform-origin: right top; font-family: 'Inter', sans-serif; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 4px; color: var(--text-light); pointer-events: none; white-space: nowrap; z-index: 5; }
+        
+        .footer-bg-text { position: absolute; bottom: -2vw; left: 0; width: 100%; text-align: center; font-family: 'Syne', sans-serif; font-size: 16vw; font-weight: 800; color: rgba(255,255,255,0.03); pointer-events: none; line-height: 0.75; overflow: hidden; white-space: nowrap; user-select: none; z-index: 0; }
+        
+        .footer-barcode { position: absolute; right: 50px; top: 100px; display: flex; gap: 3px; height: 40px; opacity: 0.3; z-index: 2; pointer-events: none; align-items: flex-end; }
+        .footer-barcode span { width: 2px; background: #fff; display: block; height: 100%; }
+        .footer-barcode span:nth-child(2n) { width: 1px; height: 70%; }
+        .footer-barcode span:nth-child(3n) { width: 4px; height: 90%; }
+        .footer-barcode span:nth-child(5n) { width: 1px; height: 100%; }
+
+        /* --- UNIKÁTNÍ ANIMACE DO PRÁZDNÝCH MÍST --- */
+        /* 1. Vertikální běžící texty na okrajích */
+        .edge-text { 
+            position: fixed; top: 0; bottom: 0; pointer-events: none; z-index: 900; 
+            display: flex; align-items: center; opacity: 0.03; font-family: 'Syne', sans-serif; 
+            font-size: 1.2rem; font-weight: 800; letter-spacing: 4px; overflow: hidden; 
+            mix-blend-mode: difference; color: #fff;
+        }
+        .edge-left { left: 20px; writing-mode: vertical-rl; transform: rotate(180deg); }
+        .edge-right { right: 20px; writing-mode: vertical-rl; }
+        
+        .edge-marquee { display: flex; gap: 2rem; animation: edgeMove 20s linear infinite; }
+        .edge-right .edge-marquee { animation-direction: reverse; }
+        @keyframes edgeMove { 
+            0% { transform: translateY(0); } 
+            100% { transform: translateY(-50%); } 
+        }
+
+        /* 2. Levitující Wireframe geometrie na pozadí */
+        .geo-shape { position: absolute; pointer-events: none; opacity: 0.03; z-index: 0; }
+        .geo-shape svg { width: 100%; height: 100%; stroke: var(--text); stroke-width: 1px; fill: none; }
+        
+        .geo-1 { 
+            top: 20%; left: 5%; width: 400px; height: 400px; 
+            animation: float-spin 35s linear infinite; 
+        }
+        .geo-2 { 
+            bottom: -10%; right: 5%; width: 300px; height: 300px; 
+            animation: float-spin-reverse 40s linear infinite; 
+        }
+        .geo-3 {
+            top: 40%; left: -5%; width: 500px; height: 500px;
+            animation: float-spin 45s linear infinite;
+        }
+
+        @keyframes float-spin {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-80px) rotate(180deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+        @keyframes float-spin-reverse {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(60px) rotate(-180deg); }
+            100% { transform: translateY(0) rotate(-360deg); }
+        }
+        /* --- KONEC NOVÝCH ANIMACÍ --- */
 
         .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; width: 100%; }
-        .service-card { padding: 30px; border: 1px solid #eee; background: #fff; transition: transform 0.3s; }
-        .service-card:hover { transform: translateY(-10px); border-color: #000; }
-        .service-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.5rem; display: block; margin-bottom: 10px; }
+        .service-card { padding: 40px; border: 1px solid #eee; background: rgba(255,255,255,0.6); transition: transform 0.4s var(--ease-out-expo), border-color 0.4s; position: relative; overflow: hidden; }
+        .service-card:hover { transform: translateY(-10px); border-color: #000; background: #fff; }
+        .service-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.8rem; display: block; margin-bottom: 15px; }
 
-        .project-item { display: flex; justify-content: space-between; align-items: baseline; padding: 50px 0; border-bottom: 1px solid #eee; cursor: pointer; width: 100%; transition: padding 0.4s var(--ease-out-expo); }
-        .project-item:hover { background: #f9f9f9; padding-left: 20px; padding-right: 20px; }
-        .project-name { font-family: 'Syne', sans-serif; font-size: 3rem; font-weight: 700; margin: 0; }
+        .project-item { display: flex; justify-content: space-between; align-items: baseline; padding: 60px 0; border-bottom: 1px solid #eee; cursor: pointer; width: 100%; transition: padding 0.4s var(--ease-out-expo), background 0.4s; }
+        .project-item:hover { background: #fafafa; padding-left: 30px; padding-right: 30px; border-bottom-color: #000; }
+        .project-name { font-family: 'Syne', sans-serif; font-size: 4rem; font-weight: 800; margin: 0; letter-spacing: -0.02em; }
+        .project-cat { font-family: 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 2px; color: var(--text-light); font-size: 0.9rem; }
+
+        /* --- NOVÉ ANIMACE --- */
+        .deco-cross { 
+            animation: cross-spin 10s linear infinite; 
+            transform-origin: center;
+        }
+        @keyframes cross-spin { 100% { transform: rotate(360deg); } }
 
         footer { 
             padding: 100px 50px 50px 50px; 
             border-top: 1px solid #000; 
-            background: #fff; 
+            background: #050505; 
+            color: #fff;
             width: 100%; 
             display: flex;
             flex-direction: column;
             gap: 60px;
+            position: relative;
+            z-index: 10;
         }
         
         .email-link { 
             font-family: 'Syne', sans-serif; 
-            font-size: 2rem; 
+            font-size: 3rem; 
             font-weight: 800; 
             display: inline-block; 
             margin: 20px 0 40px 0;
-            color: var(--text);
+            color: #fff;
             position: relative;
         }
-        .email-link::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0%; height: 3px; background: var(--text); transition: width 0.3s var(--ease-out-expo); }
+        .email-link::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0%; height: 3px; background: #fff; transition: width 0.4s var(--ease-out-expo); }
         .email-link:hover::after { width: 100%; }
 
         .social-links { display: flex; gap: 40px; flex-wrap: wrap; }
-        .social-link { font-family: 'Inter', sans-serif; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text); position: relative; padding-bottom: 5px; cursor: pointer; display: inline-block; }
-        .social-link::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0%; height: 1px; background: #000; transition: width 0.3s; }
+        .social-link { font-family: 'Inter', sans-serif; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: #bbb; position: relative; padding-bottom: 5px; cursor: pointer; display: inline-block; transition: color 0.3s; }
+        .social-link::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0%; height: 1px; background: #fff; transition: width 0.3s; }
+        .social-link:hover { color: #fff; }
         .social-link:hover::after { width: 100%; }
 
-        .footer-meta { display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--text-light); padding-top: 20px; border-top: 1px solid #eee; }
+        .footer-meta { display: flex; justify-content: space-between; font-size: 0.9rem; color: #888; padding-top: 40px; border-top: 1px solid rgba(255,255,255,0.1); }
 
         @media (max-width: 768px) {
             h1 { font-size: 15vw; } .menu-link { font-size: 2.5rem; } nav, section, footer { padding: 40px 20px; }
             .section-headline { font-size: 2.2rem; } .marquee-item { font-size: 3rem; padding: 0 20px; }
             nav.scrolled { padding: 20px; } .close-btn { top: 20px; right: 20px; }
-            .service-card:hover { transform: none; } .project-item { flex-direction: column; gap: 10px; } .project-name { font-size: 1.8rem; }
-            .email-link { font-size: 1.5rem; } .social-links { gap: 20px; } .footer-meta { flex-direction: column; gap: 10px; }
-            #loader { padding: 20px; }
+            .service-card:hover { transform: none; } 
+            
+            /* Projekty mobile */
             .about-grid { grid-template-columns: 1fr; gap: 40px; margin-top: 20px; }
             .about-image-container { max-width: 100%; margin: 0 auto; }
             .floating-stat-card { bottom: 10px; left: 10px; padding: 15px 20px; }
             .floating-stat-card .stat-num { font-size: 2rem; }
+            
+            /* Skrytí některých dekorací na mobilu pro zachování čistoty */
+            .about-bg-text, .about-micro-text, .about-vert-line { display: none; }
+            .about-decor-shape { font-size: 6rem; left: auto; right: -20px; bottom: 5%; }
+            .global-center-line, .vertical-side-text, .footer-barcode { display: none; }
+            .services-bg-num { font-size: 60vw; top: 20px; right: -10%; }
+            .footer-bg-text { font-size: 22vw; bottom: 10px; }
+            
+            /* Skrytí okrajových animací na mobilu */
+            .edge-text, .geo-shape { display: none; }
         }
     </style>
 </head>
 <body>
+
+    <!-- GLOBÁLNÍ NOISE OVERLAY -->
+    <div class="noise-overlay"></div>
+
+    <!-- GLOBÁLNÍ STŘEDOVÁ LINKA -->
+    <div class="global-center-line"></div>
+
+    <!-- VERTIKÁLNÍ OKRAJOVÉ TEXTY -->
+    <div class="edge-text edge-left">
+        <div class="edge-marquee">
+            <span>AESTHETIC &nbsp; • &nbsp; DIGITAL EXPERIENCES &nbsp; • &nbsp; ENGINEERING &nbsp; • &nbsp; </span>
+            <span>AESTHETIC &nbsp; • &nbsp; DIGITAL EXPERIENCES &nbsp; • &nbsp; ENGINEERING &nbsp; • &nbsp; </span>
+        </div>
+    </div>
+    <div class="edge-text edge-right">
+        <div class="edge-marquee">
+            <span>CREATIVE DEVELOPMENT &nbsp; • &nbsp; WEBGL &nbsp; • &nbsp; MOTION &nbsp; • &nbsp; </span>
+            <span>CREATIVE DEVELOPMENT &nbsp; • &nbsp; WEBGL &nbsp; • &nbsp; MOTION &nbsp; • &nbsp; </span>
+        </div>
+    </div>
+
+    <!-- SCROLL PROGRESS -->
+    <div class="scroll-progress" id="scroll-progress"></div>
+
+    <!-- BACKGROUND WATERMARK -->
+    <div class="bg-watermark" id="bg-watermark">AESTHETIC</div>
 
     <!-- VLASTNÍ KURZOR -->
     <div id="custom-cursor"></div>
@@ -340,9 +567,30 @@
 
     <main>
         <div class="hero">
-            <span class="hero-name reveal-text">Ethan Wright</span>
-            <h1 class="hero-title">DIGITAL<br>DESIGNER</h1>
-            <div class="role">Creative Developer & 3D Artist</div>
+            <!-- Architektonický Grid v pozadí Hero -->
+            <div class="hero-grid">
+                <div class="hero-grid-line"></div>
+                <div class="hero-grid-line"></div>
+                <div class="hero-grid-line"></div>
+                <div class="hero-grid-line"></div>
+            </div>
+
+            <!-- Detaily v rozích pro tech-vibe -->
+            <div class="scroll-indicator">
+                <span class="scroll-text">Scroll to explore</span>
+                <div class="scroll-line-wrapper"><div class="scroll-line-inner"></div></div>
+            </div>
+            
+            <div class="tech-details">
+                <span>INT. VERSION 2.4</span>
+                <span>LAT 49.2° N / LON 16.6° E</span>
+            </div>
+
+            <div class="hero-content">
+                <span class="hero-name reveal-text">Ethan Wright</span>
+                <h1 class="hero-title">DIGITAL<br>DESIGNER</h1>
+                <div class="role">Creative Developer & 3D Artist</div>
+            </div>
         </div>
 
         <div class="marquee-wrapper">
@@ -359,6 +607,32 @@
         </div>
 
         <section id="about">
+            <!-- Plovoucí geometrie na pozadí (Terč) -->
+            <div class="geo-shape geo-1">
+                <svg viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="48" stroke-dasharray="4 4" />
+                    <circle cx="50" cy="50" r="38" />
+                    <circle cx="50" cy="50" r="28" stroke-dasharray="2 6" />
+                    <line x1="50" y1="0" x2="50" y2="100" stroke-width="0.5" />
+                    <line x1="0" y1="50" x2="100" y2="50" stroke-width="0.5" />
+                </svg>
+            </div>
+
+            <div class="deco-cross tl">+</div>
+            <div class="deco-cross tr">+</div>
+            <div class="deco-cross bl">+</div>
+            <div class="deco-cross br">+</div>
+
+            <!-- Background Watermark -->
+            <div class="about-bg-watermark">CREATOR</div>
+
+            <!-- Meta hlavička -->
+            <div class="section-meta reveal-text">
+                <span>[ 01 ]</span>
+                <span class="meta-line"></span>
+                <span>About Me</span>
+            </div>
+
             <h2 class="section-headline reveal-text">I don't just build websites.<br>I <span style="font-style: italic; color: var(--text-light); font-weight: 500;">design</span> digital<br>realities.</h2>
             <div class="about-grid">
                 <div class="about-text-content">
@@ -366,13 +640,27 @@
                         I am a developer obsessed with details. I believe the web isn't just about information, it's about a feeling. I use Three.js, WebGL, and modern animations to create something people will remember.
                     </p>
                     <div class="about-tags reveal-text" style="transition-delay: 0.15s;">
-                        <span class="about-tag">Three.js</span>
-                        <span class="about-tag">WebGL</span>
-                        <span class="about-tag">Creative UI</span>
-                        <span class="about-tag">Motion</span>
+                        <span class="about-tag magnetic">Three.js</span>
+                        <span class="about-tag magnetic">WebGL</span>
+                        <span class="about-tag magnetic">Creative UI</span>
+                        <span class="about-tag magnetic">Motion</span>
+                        
+                        <!-- Nový indikátor dostupnosti -->
+                        <div class="availability-status magnetic">
+                            <div class="pulse-dot"></div>
+                            <span>Available for work</span>
+                        </div>
                     </div>
                 </div>
                 <div class="about-image-container reveal-text" style="transition-delay: 0.2s;">
+                    <!-- Rámeček kolem fotky s efekty -->
+                    <div class="tech-frame">
+                        <div class="tech-frame-bg">
+                            <div class="scanner-line"></div>
+                        </div>
+                        <div class="tech-frame-inner"></div>
+                    </div>
+                    
                     <div class="about-image-inner" id="glitch-wrapper">
                         <!-- Glitch vrstvy -->
                         <div class="glitch-layer"></div>
@@ -390,44 +678,91 @@
         </section>
 
         <section id="services">
-            <h2 class="section-headline reveal-text">Services</h2>
-            <div class="services-grid">
-                <div class="service-card reveal-text" style="transition-delay: 0.1s;">
-                    <span class="service-title">Web Design</span>
-                    <p>Minimalist, clean design focused on typography and space.</p>
+            <!-- Plovoucí geometrie na pozadí 2 (Abstraktní mnohoúhelník) -->
+            <div class="geo-shape geo-2">
+                <svg viewBox="0 0 100 100">
+                    <polygon points="50,5 95,25 95,75 50,95 5,75 5,25" />
+                    <polygon points="50,15 85,35 85,65 50,85 15,65 15,35" stroke-dasharray="2 4" />
+                    <line x1="5" y1="25" x2="95" y2="75" stroke-width="0.5" />
+                    <line x1="5" y1="75" x2="95" y2="25" stroke-width="0.5" />
+                </svg>
+            </div>
+            
+            <div class="geo-shape geo-3">
+                <svg viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" stroke-width="0.2"/>
+                    <rect x="15" y="15" width="70" height="70" stroke-dasharray="1 5" />
+                </svg>
+            </div>
+
+            <div class="services-bg-num">02</div>
+            <div class="services-content-wrapper">
+                <div class="section-meta reveal-text">
+                    <span>[ 02 ]</span>
+                    <span class="meta-line"></span>
+                    <span>Services</span>
                 </div>
-                <div class="service-card reveal-text" style="transition-delay: 0.2s;">
-                    <span class="service-title">3D Development</span>
-                    <p>Interactive 3D scenes running smoothly right in the browser.</p>
-                </div>
-                <div class="service-card reveal-text" style="transition-delay: 0.3s;">
-                    <span class="service-title">Motion</span>
-                    <p>Advanced animations and micro-interactions for a premium feel.</p>
+                <h2 class="section-headline reveal-text">Services</h2>
+                <div class="services-grid">
+                    <div class="service-card reveal-text" style="transition-delay: 0.1s;">
+                        <span class="service-title">Web Design</span>
+                        <p>Minimalist, clean design focused on typography and space.</p>
+                    </div>
+                    <div class="service-card reveal-text" style="transition-delay: 0.2s;">
+                        <span class="service-title">3D Development</span>
+                        <p>Interactive 3D scenes running smoothly right in the browser.</p>
+                    </div>
+                    <div class="service-card reveal-text" style="transition-delay: 0.3s;">
+                        <span class="service-title">Motion</span>
+                        <p>Advanced animations and micro-interactions for a premium feel.</p>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <section id="projects">
+        <section id="projects" style="position: relative;">
+            <!-- Vertikální dekorativní text -->
+            <div class="vertical-side-text">Selected works &mdash; 2024 to 2026</div>
+
+            <div class="section-meta reveal-text">
+                <span>[ 03 ]</span>
+                <span class="meta-line"></span>
+                <span>Selected Work</span>
+            </div>
             <h2 class="section-headline reveal-text">Selected Work</h2>
             
             <a href="javascript:void(0)" class="project-item reveal-text magnetic">
                 <h2 class="project-name">Neon Gallery</h2>
-                <span>Web / 3D</span>
+                <span class="project-cat">Web / 3D</span>
             </a>
-            <a href="#" class="project-item reveal-text" style="transition-delay: 0.1s;">
+            <a href="javascript:void(0)" class="project-item reveal-text magnetic" style="transition-delay: 0.1s;">
                 <h2 class="project-name">Future Bank</h2>
-                <span>App Design</span>
+                <span class="project-cat">App Design</span>
             </a>
-            <a href="#" class="project-item reveal-text" style="transition-delay: 0.2s;">
+            <a href="javascript:void(0)" class="project-item reveal-text magnetic" style="transition-delay: 0.2s;">
                 <h2 class="project-name">Urban Arch</h2>
-                <span>Portfolio</span>
+                <span class="project-cat">Portfolio</span>
             </a>
         </section>
 
         <footer id="contact">
+            <!-- Obří text na pozadí -->
+            <div class="footer-bg-text">CONNECT</div>
+            
+            <!-- Čárový kód tech element -->
+            <div class="footer-barcode">
+                <span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span>
+            </div>
+
             <div class="footer-content">
-                <span class="reveal-text section-label" style="text-transform: uppercase; color: #666; font-size: 0.9rem;">Collaboration</span>
-                <h2 class="reveal-text section-headline" style="margin-top: 20px; font-size: 2.5rem;">Have an idea?<br>Let's make it real.</h2>
+                <div class="section-meta reveal-text" style="color: #888;">
+                    <span>[ 04 ]</span>
+                    <span class="meta-line" style="background: rgba(255,255,255,0.2);"></span>
+                    <span>Collaboration</span>
+                </div>
+                <h2 class="reveal-text section-headline" style="margin-top: 20px; font-size: 2.5rem; color: #fff;">Have an idea?<br>Let's make it real.</h2>
                 
                 <a href="mailto:hello@example.com" class="email-link reveal-text magnetic">hello@email.com</a>
                 
@@ -448,6 +783,29 @@
 
     <!-- JS: LOGIKA -->
     <script>
+        // --- SCROLL PROGRESS A PARALLAX WATERMARK ---
+        const progressBar = document.getElementById('scroll-progress');
+        const watermark = document.getElementById('bg-watermark');
+        
+        window.addEventListener('scroll', () => {
+            // Progress Bar
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            if(progressBar) progressBar.style.width = scrolled + "%";
+            
+            // Watermark Parallax
+            if(watermark) {
+                const move = winScroll * 0.15;
+                watermark.style.transform = `rotate(-90deg) translate(-50%, ${move}px)`;
+            }
+
+            // Sticky Header
+            const navbar = document.getElementById('navbar');
+            if (winScroll > 50) navbar.classList.add('scrolled');
+            else navbar.classList.remove('scrolled');
+        });
+
         // --- VLASTNÍ KURZOR LOGIKA ---
         const cursor = document.getElementById('custom-cursor');
         let cursorX = 0, cursorY = 0;
@@ -459,7 +817,6 @@
         });
 
         function animateCursor() {
-            // Smooth následování
             cursorX += (mouseX - cursorX) * 0.15;
             cursorY += (mouseY - cursorY) * 0.15;
             cursor.style.transform = `translate(${cursorX}px, ${cursorY}px) translate(-50%, -50%)`;
@@ -511,13 +868,6 @@
             }
         }, 30);
 
-        // STICKY HEADER
-        const navbar = document.getElementById('navbar');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) navbar.classList.add('scrolled');
-            else navbar.classList.remove('scrolled');
-        });
-
         // MENU
         function toggleMenu() { document.getElementById('menu-overlay').classList.toggle('active'); }
         function closeMenu() { document.getElementById('menu-overlay').classList.remove('active'); }
@@ -546,7 +896,7 @@
         document.querySelectorAll('.reveal-text').forEach(el => observer.observe(el));
 
         // MARQUEE
-        let offset = 0; let speed = 2; 
+        let marqueeOffset = 0; 
         const marqueeContent = document.getElementById('marquee');
         let lastScrollY = window.scrollY; let scrollSpeed = 0;
 
@@ -559,10 +909,10 @@
 
         function animateMarquee() {
             scrollSpeed *= 0.95; 
-            const finalSpeed = speed + scrollSpeed;
-            offset -= finalSpeed;
-            if (offset <= -marqueeContent.scrollWidth / 2) offset = 0;
-            marqueeContent.style.transform = `translateX(${offset}px)`;
+            const finalSpeed = 2 + scrollSpeed;
+            marqueeOffset -= finalSpeed;
+            if (marqueeOffset <= -marqueeContent.scrollWidth / 2) marqueeOffset = 0;
+            marqueeContent.style.transform = `translateX(${marqueeOffset}px)`;
             requestAnimationFrame(animateMarquee);
         }
         marqueeContent.innerHTML += marqueeContent.innerHTML;
@@ -588,6 +938,21 @@
                 glitchWrapper.style.transform = `rotateX(0deg) rotateY(0deg)`;
             });
         }
+
+        // --- PARALLAX EFEKT PRO FOTKU V ABOUT SEKCI ---
+        const aboutImageContainer = document.querySelector('.about-image-container');
+        window.addEventListener('scroll', () => {
+            if (aboutImageContainer && window.innerWidth > 768) {
+                const rect = aboutImageContainer.getBoundingClientRect();
+                const center = window.innerHeight / 2;
+                // Aplikovat pouze pokud je fotka na obrazovce
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                    const distFromCenter = rect.top - center + (rect.height / 2);
+                    aboutImageContainer.style.transform = `translateY(${distFromCenter * 0.08}px)`;
+                }
+            }
+        });
+
     </script>
 
     <!-- 3D SKLO S KLIK ROTACÍ -->
@@ -596,7 +961,8 @@
 
         const canvas = document.querySelector('#webgl-glass');
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xffffff);
+        // Na mobilu nezobrazovat kvůli výkonu a čistému backgroundu pro Noise, na PC nechat průhledné
+        scene.background = null; 
         
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
         camera.position.z = 20;
@@ -605,6 +971,7 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.setClearColor(0x000000, 0); // Transparentní pozadí pro 3D
 
         // ČISTÉ SKLO
         const geometry = new THREE.TorusKnotGeometry(3.5, 1.2, 128, 32);
@@ -622,21 +989,18 @@
         // --- ROTACE LOGIKA (MYŠ + KLIK) ---
         let targetRotationY = 0;
         let currentRotationY = 0;
-        let mouseX = 0, mouseY = 0;
+        let mouse3DX = 0, mouse3DY = 0;
         let clickRotationVelocity = 0;
 
         window.addEventListener('mousemove', (e) => {
-            mouseX = (e.clientX - window.innerWidth/2) * 0.0005;
-            mouseY = (e.clientY - window.innerHeight/2) * 0.0005;
+            mouse3DX = (e.clientX - window.innerWidth/2) * 0.0005;
+            mouse3DY = (e.clientY - window.innerHeight/2) * 0.0005;
         });
 
         window.addEventListener('mousedown', (e) => {
-            // Zabránit roztočení, pokud klikáme na fotku (aby fungoval glitch bez otáčení uzlu)
+            // Zabránit roztočení, pokud klikáme na fotku
             if (e.target.closest('.about-image-container')) return;
-            
-            if (window.innerWidth > 768) {
-                clickRotationVelocity = 0.2;
-            }
+            if (window.innerWidth > 768) clickRotationVelocity = 0.2;
         });
 
         window.addEventListener('wheel', (e) => {
@@ -669,8 +1033,8 @@
             requestAnimationFrame(animate);
             const t = clock.getElapsedTime();
 
-            const baseRotationX = Math.sin(t * 0.3) * 0.3 + mouseY;
-            const baseRotationY = t * 0.2 + mouseX;
+            const baseRotationX = Math.sin(t * 0.3) * 0.3 + mouse3DY;
+            const baseRotationY = t * 0.2 + mouse3DX;
 
             targetRotationY *= 0.95; 
             currentRotationY += targetRotationY;
@@ -694,9 +1058,9 @@
 
     <!-- PIXEL EFEKT -->
     <script>
-        const canvas = document.getElementById('pixel-canvas');
+        const canvasPixel = document.getElementById('pixel-canvas');
         if (window.innerWidth > 768) {
-            const ctx = canvas.getContext('2d');
+            const ctx = canvasPixel.getContext('2d');
             let width, height, gridSize = 20, cols, rows, grid = [], waves = [];
 
             class Pixel {
@@ -729,9 +1093,9 @@
                 update() { this.radius += this.speed; if(this.radius > this.maxRadius) this.active = false; }
             }
 
-            function init() {
+            function initPixels() {
                 width = window.innerWidth; height = window.innerHeight;
-                canvas.width = width; canvas.height = height;
+                canvasPixel.width = width; canvasPixel.height = height;
                 cols = Math.ceil(width/gridSize); rows = Math.ceil(height/gridSize);
                 grid = new Array(cols).fill(0).map((_, i) => new Array(rows).fill(0).map((_, j) => new Pixel(i*gridSize, j*gridSize)));
             }
@@ -753,7 +1117,7 @@
                 }
             });
 
-            function animate() {
+            function animatePixels() {
                 ctx.clearRect(0, 0, width, height);
                 waves = waves.filter(w => w.active);
                 waves.forEach(w => w.update());
@@ -768,11 +1132,11 @@
                         if(p.alpha > 0) { p.update(); p.draw(); }
                     }
                 }
-                requestAnimationFrame(animate);
+                requestAnimationFrame(animatePixels);
             }
 
-            init(); animate();
-            window.addEventListener('resize', init);
+            initPixels(); animatePixels();
+            window.addEventListener('resize', initPixels);
         }
     </script>
 </body>
